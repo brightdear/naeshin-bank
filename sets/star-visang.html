@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>별 비상교육판</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#f4f5f7;--paper:#fff;--ink:#1d2129;--muted:#6b7280;--line:#d9dde3;--accent:#1f7a5a;--accent-soft:#e6f3ee;--tag:#eef1f5}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121417;--paper:#1b1e23;--ink:#e6e8eb;--muted:#9aa1ab;--line:#2e333a;--accent:#4cc29a;--accent-soft:#1d3029;--tag:#262a31}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 "Noto Sans KR",system-ui,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 64px}
+header{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 24px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+header h1{margin:0;font-size:22px}
+header p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.btn{border:1px solid var(--accent);background:var(--paper);color:var(--accent);border-radius:8px;padding:8px 14px;font:inherit;font-weight:500;cursor:pointer}
+.btn.on{background:var(--accent);color:var(--paper)}
+.sheet{margin-top:16px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px;columns:2 420px;column-gap:40px;column-rule:1px solid var(--line)}
+.q{break-inside:avoid;margin:0 0 28px}
+.q h2{font-size:15px;font-weight:500;margin:0 0 8px;display:flex;gap:8px}
+.q h2 b{font-size:18px;font-weight:700}
+.tag{display:inline-block;font-size:11px;color:var(--muted);background:var(--tag);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.box{border:3px double var(--line);padding:8px 12px;margin:8px 0}
+.box .t{text-align:center;font-size:13px;color:var(--muted)}
+.box p{margin:2px 0}
+ol.ch{list-style:none;padding:0;margin:6px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--w,100%),1fr));gap:2px 12px}
+ol.ch li::before{content:attr(data-n) " "}
+figure{margin:8px 0;text-align:center;color:var(--ink)}
+figure svg{width:100%;max-width:320px;height:auto}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:4px 8px;text-align:center}
+th{background:var(--tag)}
+.ans{display:none;margin-top:8px;background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:14px}
+.ans strong{color:var(--accent)}
+.show .ans{display:block}
+.q .peek{margin-top:6px;font-size:12px;padding:3px 10px}
+.chh{padding-left:1.6em;margin-top:6px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line)}
+.c{display:inline-block;min-width:6.5em;text-align:center}
+@media print{.btn{display:none}.sheet{border:0}}
+</style>
+</head>
+<body>
+<div class="wrap"><a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:13px;color:var(--accent);text-decoration:none">← 처음으로</a>
+<header>
+  <div>
+    <h1>7-1 별 · 비상교육판 18문항</h1>
+    <p>비상교육 과학3 탐구 활동 기반</p>
+  </div>
+  <button class="btn" id="all">정답·해설 모두 보기</button>
+</header>
+<main class="sheet" id="sheet"></main>
+</div>
+
+<script>
+const T = (x, y, s) => `<text x="${x}" y="${y}" fill="currentColor" stroke="none">${s}</text>`;
+const C = (...a) => a.map(x => `<span class="c">${x}</span>`).join("");
+const star = (x, y, r) => `<path d="M${x} ${y-r} L${x+r*0.3} ${y-r*0.3} L${x+r} ${y} L${x+r*0.3} ${y+r*0.3} L${x} ${y+r} L${x-r*0.3} ${y+r*0.3} L${x-r} ${y} L${x-r*0.3} ${y-r*0.3} Z" fill="currentColor" stroke="none"/>`;
+const para = (ang) => `<svg viewBox="0 0 320 210" fill="none" stroke="currentColor" stroke-width="2" font-size="13" font-family="Noto Sans KR">
+${[30,75,245,290].map(x=>star(x,14,4)).join("")}${T(128,18,"먼 배경 별")}
+${star(160,40,7)}${T(172,44,"별 S")}
+<path d="M50 165 L160 40 L270 165" stroke-dasharray="5 4"/>
+<path d="M145.5 56.5 A22 22 0 0 0 174.5 56.5"/>${T(144,84,ang)}
+<ellipse cx="160" cy="165" rx="110" ry="22" stroke-width="1.5"/>
+<circle cx="160" cy="165" r="9" fill="currentColor"/>${T(148,198,"태양")}
+<circle cx="50" cy="165" r="6" fill="currentColor"/>${T(4,152,"지구(1월)")}
+<circle cx="270" cy="165" r="6" fill="currentColor"/>${T(250,152,"지구(7월)")}
+${T(214,206,"(실제 비율과 다름)")}</svg>`;
+
+const Q = [
+ {s:"연주 시차에 대한 설명으로 옳지 <u>않은</u> 것은?", tag:"비상 · 01 연주 시차로 구하는 별까지의 거리 · 하",
+  c:["지구 공전 궤도에서 6개월 간격으로 별을 관측하여 측정한 시차의 1/2이다.","연주 시차가 1″인 별까지의 거리를 1 pc이라고 한다.","지구에서 멀리 있는 별일수록 연주 시차를 측정하기 쉽다.","별까지의 거리가 멀수록 연주 시차는 작아진다.","연주 시차를 이용하면 대체로 100 pc보다 가까운 별까지의 거리를 구할 수 있다."],
+  a:"③", e:"먼 별일수록 연주 시차가 너무 작아져 측정하기 어렵다. 그래서 연주 시차로는 대체로 100 pc 이내의 별까지만 거리를 구한다."},
+
+ {s:"6개월 간격으로 찍은 사진에서 배경 별에 대한 위치 변화를 측정하여 다섯 별 A~E의 연주 시차를 구하였다. 지구에서 <u>가까운</u> 별부터 순서대로 나열한 것은?", tag:"비상 · 해보기: 연주 시차를 이용하여 별까지의 거리 비교하기 · 하",
+  t:{h:["별","A","B","C","D","E"],r:[["연주 시차","0.10″","0.50″","0.02″","0.25″","0.04″"]]},
+  c:["C - E - A - D - B","B - D - A - E - C","B - D - E - A - C","D - B - A - E - C","C - A - E - D - B"], w:"45%",
+  a:"②", e:"연주 시차가 클수록 가까운 별이다. 거리(pc) = 1/연주 시차이므로 B 2 pc, D 4 pc, A 10 pc, E 25 pc, C 50 pc이다. ①은 먼 별부터 나열한 것이다."},
+
+ {s:"별의 등급과 밝기에 대한 설명으로 옳지 <u>않은</u> 것은?", tag:"비상 · 02 밝기로 구하는 별까지의 거리 · 하",
+  c:["등급을 나타내는 숫자가 작을수록 밝은 별이다.","1등급 차이는 밝기로 약 2.5배 차이이다.","1등급 별은 6등급 별보다 약 100배 밝다.","−1등급 별은 1등급 별보다 밝다.","2등급 별은 7등급 별보다 약 5배 밝다."],
+  a:"⑤", e:"2등급과 7등급은 5등급 차이이므로 밝기는 약 100배 차이이다. ④ −1등급은 1등급보다 숫자가 2만큼 작으므로 약 6.3배 밝다."},
+
+ {s:"그림과 같이 스마트 기기의 조도 측정 앱으로 손전등의 밝기를 측정하였다. 손전등을 기준선(1 m)에 두었을 때 측정값은 360 lx였다. 같은 손전등을 3 m 위치로 옮기면 측정값은 몇 lx가 되겠는가? (단, 손전등 빛은 한 점에서 사방으로 고르게 퍼져 나간다고 가정하고, lx(럭스)는 밝기를 나타내는 단위이다.)", tag:"비상 · 해보기: 손전등의 밝기 비교하기 · 중",
+  f:`<svg viewBox="0 0 320 135" fill="none" stroke="currentColor" stroke-width="2" font-size="12" font-family="Noto Sans KR">
+<rect x="14" y="34" width="28" height="50" rx="5"/><circle cx="28" cy="44" r="3"/>${T(4,100,"조도 측정 앱")}
+<rect x="118" y="48" width="30" height="16" rx="3"/><path d="M118 44 L108 40 V72 L118 68"/>${T(100,32,"① 기준선")}
+<g stroke-dasharray="4 3"><rect x="262" y="48" width="30" height="16" rx="3"/><path d="M262 44 L252 40 V72 L262 68"/></g>${T(248,32,"② 먼 곳")}
+<path d="M42 108 H108 M42 102 V114 M108 102 V114"/>${T(66,102,"1 m")}
+<path d="M42 122 H252 M42 116 V128 M252 116 V128"/>${T(140,134,"3 m")}</svg>`,
+  c:["40 lx","90 lx","120 lx","180 lx","360 lx"], w:"30%",
+  a:"①", e:"밝기는 거리의 제곱에 반비례한다. 거리가 3배가 되면 밝기는 1/3² = 1/9배이므로 360 lx × 1/9 = 40 lx이다. ③은 1/3배로, ②는 2 m일 때의 값으로 착각한 것이다."},
+
+ {s:"표는 세 별 A~C의 겉보기 등급과 절대 등급을 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?", tag:"비상 · 02 겉보기 등급과 절대 등급 · 중",
+  t:{h:["별","겉보기 등급","절대 등급"],r:[["A","1.0","3.0"],["B","3.0","−2.0"],["C","−1.0","1.0"]]},
+  b:["ㄱ. 맨눈으로 볼 때 가장 밝게 보이는 별은 A이다.","ㄴ. 세 별을 모두 10 pc 거리에 놓으면 B가 가장 밝게 보인다.","ㄷ. 실제 밝기는 B가 A보다 약 100배 밝다."],
+  c:["ㄱ","ㄴ","ㄱ, ㄴ","ㄱ, ㄷ","ㄴ, ㄷ"], w:"30%", a:"⑤",
+  e:"ㄱ. 보이는 밝기는 겉보기 등급으로 비교하며, 겉보기 등급이 가장 작은 C(−1.0)가 가장 밝게 보인다. ㄴ. 10 pc에 놓았을 때의 밝기는 절대 등급으로 비교하며, B(−2.0)가 가장 작다. ㄷ. 절대 등급 차가 3.0 − (−2.0) = 5이므로 B가 약 100배 밝다."},
+
+ {s:"표는 세 별 A~C의 겉보기 등급과 절대 등급이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?", tag:"비상 · 02 겉보기 등급과 절대 등급으로 거리 비교 · 중",
+  t:{h:["별","겉보기 등급","절대 등급"],r:[["A","2.0","2.0"],["B","2.0","−1.0"],["C","4.0","5.0"]]},
+  b:["ㄱ. A까지의 거리는 10 pc이다.","ㄴ. A와 B는 겉보기 등급이 같으므로 지구로부터의 거리도 같다.","ㄷ. 세 별 중 지구에서 가장 멀리 있는 별은 B이다."],
+  c:["ㄱ","ㄷ","ㄱ, ㄷ","ㄴ, ㄷ","ㄱ, ㄴ, ㄷ"], w:"30%", a:"③",
+  e:"(겉보기 등급 − 절대 등급) 값은 A 0, B 3.0, C −1.0이다. ㄱ. 값이 0이면 10 pc에 있다. ㄴ. B는 실제로 A보다 밝은데 같은 밝기로 보이므로 A보다 멀리 있다. ㄷ. 값이 클수록 멀리 있으므로 B가 가장 멀고, C는 10 pc보다 가깝다."},
+
+ {s:"그림은 지구가 태양 둘레를 공전하는 동안 6개월 간격으로 별 S를 관측한 것을 나타낸 것이다. 이 별의 시차, 연주 시차, 지구로부터의 거리를 옳게 짝 지은 것은?", tag:"비상 · 01 연주 시차로 구하는 별까지의 거리 · 하",
+  f:para("0.4″"),
+  ch:C("시차","연주 시차","거리"),
+  c:[C("0.4″","0.4″","2.5 pc"),C("0.2″","0.4″","2.5 pc"),C("0.4″","0.8″","1.25 pc"),C("0.4″","0.2″","5 pc"),C("0.8″","0.4″","2.5 pc")],
+  a:"④", e:"그림에 표시된 0.4″는 6개월 간격의 두 위치에서 측정한 시차이다. 연주 시차는 그 1/2인 0.2″이고, 거리 = 1/0.2 = 5 pc이다."},
+
+ {s:"별의 연주 시차에 대한 설명으로 옳은 것은?", tag:"비상 · 01 연주 시차로 구하는 별까지의 거리 · 하",
+  c:["지구에서 가까운 별일수록 연주 시차가 크다.","표면 온도가 높은 별일수록 연주 시차가 크다.","절대 등급이 작은 별일수록 연주 시차가 크다.","같은 별이라도 겨울철에 측정하면 여름철보다 연주 시차가 크다.","크기가 큰 별일수록 연주 시차가 크다."],
+  a:"①", e:"연주 시차는 지구에서 별까지의 거리에 의해서만 결정되며 거리에 반비례한다. 별의 온도, 등급, 크기와는 관계없고, 6개월 간격으로 측정한 값이므로 측정 계절에 따라 달라지지도 않는다."},
+
+ {s:"다음은 별과 태양의 색을 정리한 것이다. 표면 온도가 가장 높은 별은?", tag:"비상 · 03 색으로 비교하는 별의 표면 온도 · 하",
+  p:"· 베텔게우스: 붉은색 &nbsp; · 리겔: 청백색 &nbsp; · 태양: 노란색<br>· 시리우스: 백색(밤하늘에서 가장 밝게 보이는 별) &nbsp; · 직녀성: 백색",
+  c:["베텔게우스","리겔","시리우스","태양","직녀성"], w:"30%",
+  a:"②", e:"별의 표면 온도는 청색 > 청백색 > 백색 > 황백색 > 황색 > 주황색 > 적색 순으로 높다. 청백색인 리겔이 가장 높다. 시리우스는 밝게 보일 뿐 표면 온도는 리겔보다 낮다."},
+
+ {s:"다음은 별 A~E의 연주 시차이다. 지구에서 가장 멀리 있는 별은?", tag:"비상 · 01 연주 시차로 구하는 별까지의 거리 · 하",
+  ch:C("별","연주 시차"),
+  c:[C("A","0.38″"),C("B","0.12″"),C("C","0.75″"),C("D","0.05″"),C("E","0.012″")],
+  a:"⑤", e:"연주 시차가 가장 작은 별이 가장 멀다. E의 연주 시차 0.012″가 가장 작다(약 83 pc). 0.12″(B)와 자릿수를 혼동하지 않도록 한다."},
+
+ {s:"직녀성의 겉보기 등급은 약 0.0등급, 북극성의 겉보기 등급은 약 2.0등급이다. 맨눈으로 본 두 별의 밝기를 비교한 것으로 옳은 것은?", tag:"비상 · 02 별의 밝기와 등급 · 중",
+  c:["북극성이 직녀성보다 약 6.3배 밝게 보인다.","직녀성이 북극성보다 약 2배 밝게 보인다.","직녀성이 북극성보다 약 6.3배 밝게 보인다.","직녀성이 북극성보다 약 5배 밝게 보인다.","북극성이 직녀성보다 약 2배 밝게 보인다."],
+  a:"③", e:"등급 숫자가 작은 직녀성이 더 밝게 보인다. 2등급 차이이므로 밝기 차는 약 2.5 × 2.5 ≒ 6.3배이다."},
+
+ {s:"표는 별 몇 개의 겉보기 등급과 절대 등급을 대략 나타낸 것이다. 실제로 가장 밝은 별과 맨눈으로 가장 밝게 보이는 별을 옳게 짝 지은 것은?", tag:"비상 · 02 겉보기 등급과 절대 등급 · 중",
+  t:{h:["별","겉보기 등급","절대 등급"],r:[["시리우스","−1.5","1.4"],["베텔게우스","0.4","−5.6"],["리겔","0.1","−7.0"],["직녀성","0.0","0.6"],["북극성","2.0","−3.6"]]},
+  ch:C("실제로 가장 밝은 별","가장 밝게 보이는 별"),
+  c:[C("시리우스","리겔"),C("베텔게우스","시리우스"),C("리겔","직녀성"),C("리겔","시리우스"),C("북극성","베텔게우스")],
+  a:"④", e:"실제 밝기는 절대 등급으로 비교한다. −7.0 < −5.6 < −3.6이므로 리겔이 가장 밝다. 보이는 밝기는 겉보기 등급으로 비교하며, −1.5가 0.0보다 작으므로 시리우스가 가장 밝게 보인다."},
+
+ {s:"지구로부터 10 pc 떨어진 어떤 별이 20 pc 떨어진 곳으로 멀어진다면, 지구에서 본 이 별의 밝기는 어떻게 되는가?", tag:"비상 · 해보기: 손전등의 밝기 비교하기 · 하",
+  c:["1/2로 어두워진다.","1/4로 어두워진다.","1/8로 어두워진다.","2배로 밝아진다.","변하지 않는다."], w:"45%",
+  a:"②", e:"별의 밝기는 거리의 제곱에 반비례한다. 거리가 2배가 되면 밝기는 1/2² = 1/4로 어두워진다."},
+
+ {s:"다음 별 A~E 중 지구로부터 10 pc보다 <u>가까이</u> 있는 별은?", tag:"비상 · 02 겉보기 등급과 절대 등급으로 거리 비교 · 중",
+  ch:C("별","겉보기 등급","절대 등급"),
+  c:[C("A","−0.5","0.5"),C("B","1.0","−2.0"),C("C","3.0","3.0"),C("D","−1.0","−3.0"),C("E","4.0","−1.0")],
+  a:"①", e:"(겉보기 등급 − 절대 등급) 값이 0보다 작으면 10 pc보다 가깝다. A는 −0.5 − 0.5 = −1.0으로 유일하다. C는 0이므로 10 pc, B(3.0)·D(2.0)·E(5.0)는 10 pc보다 멀다. 절대 등급이 작은(실제로 밝은) 별이라고 가까운 것은 아니다."},
+
+ {s:"그림은 시차 측정 활동지를 접어 세우고 두 구멍을 뚫은 뒤, 작은 우체통 모형을 가까운 위치 (가)와 먼 위치 (나)에 세우고 왼쪽·오른쪽 구멍으로 번갈아 보며 뒤쪽 눈금의 숫자를 읽는 활동을 위에서 본 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?", tag:"비상 · 탐구: 시차 측정 · 중",
+  f:`<svg viewBox="0 0 320 200" fill="none" stroke="currentColor" stroke-width="2" font-size="12" font-family="Noto Sans KR">
+<path d="M70 25 H250"/>${[0,1,2,3,4,5,6,7,8].map(i=>`<path d="M${80+i*20} 21 V29"/>${T(77+i*20,15,i+1)}`).join("")}${T(256,29,"눈금")}
+<rect x="153" y="63" width="14" height="14"/>${T(174,74,"(나)")}
+<rect x="153" y="113" width="14" height="14"/>${T(174,124,"(가)")}
+<path d="M90 175 H230" stroke-width="3"/><circle cx="130" cy="175" r="4" fill="currentColor"/><circle cx="190" cy="175" r="4" fill="currentColor"/>
+${T(92,195,"왼쪽 구멍")}${T(176,195,"오른쪽 구멍")}
+<path d="M130 175 L211.8 25 M190 175 L108.2 25" stroke-dasharray="5 4" stroke-width="1.5"/>
+<path d="M130 175 L172.9 25 M190 175 L147.1 25" stroke-dasharray="2 3" stroke-width="1.5"/></svg>`,
+  b:["ㄱ. 우체통 모형을 (가)에 세웠을 때가 (나)에 세웠을 때보다 시차가 크다.","ㄴ. 두 구멍 사이의 간격은 지구 공전 궤도에서 6개월 간격으로 떨어진 두 위치 사이의 거리에 비유할 수 있다.","ㄷ. 우체통 모형은 지구에, 뒤쪽 눈금의 숫자는 연주 시차를 측정하려는 별에 비유할 수 있다."],
+  c:["ㄱ","ㄷ","ㄱ, ㄴ","ㄴ, ㄷ","ㄱ, ㄴ, ㄷ"], w:"30%", a:"③",
+  e:"ㄱ. 관측 지점과 물체 사이 거리가 가까울수록 두 구멍에서 본 눈금 숫자의 차이가 커서 시차가 크다. ㄴ. 두 구멍은 6개월 간격의 지구 위치에 해당한다. ㄷ. 우체통 모형은 거리를 구하려는 별, 뒤쪽 눈금은 아주 멀리 있는 배경 별에 비유된다."},
+
+ {s:"전열기의 니크롬선이 온도에 따라 색이 달라지듯이 별도 표면 온도에 따라 색이 다르다. 표는 별 A~E의 색과 겉보기 등급이다. 표면 온도가 가장 높은 별은?", tag:"비상 · 해보기: 니크롬선의 색과 온도 알아보기 · 하",
+  t:{h:["별","A","B","C","D","E"],r:[["색","붉은색","백색","노란색","청색","황백색"],["겉보기 등급","−0.5","0.0","1.5","2.5","1.0"]]},
+  c:["A","B","C","D","E"], w:"18%",
+  a:"④", e:"표면 온도는 청색 > 백색 > 황백색 > 노란색 > 붉은색 순으로 높으므로 D가 가장 높다. 백색이 가장 뜨겁다고 생각하거나 가장 밝게 보이는 A를 고르지 않도록 한다. 겉보기 등급은 표면 온도와 관계없다."},
+
+ {s:"그림은 6개월 간격으로 별 S를 관측했을 때의 시차를 나타낸 것이다. 물음에 답하시오.<br>(1) 별 S의 연주 시차와 지구로부터의 거리를 풀이 과정과 함께 구하시오.<br>(2) 별 S가 지금보다 2배 먼 곳에 있다면 연주 시차는 어떻게 달라지는지 까닭과 함께 서술하시오.", tag:"비상 · 01 연주 시차로 구하는 별까지의 거리 · 중",
+  f:para("0.2″"), c:[],
+  a:"(1) 그림의 0.2″는 6개월 간격으로 측정한 시차이므로 연주 시차는 그 1/2인 0.1″이다. 거리 = 1/연주 시차 = 1/0.1 = 10 pc이다.<br>(2) 연주 시차는 거리에 반비례하므로, 거리가 2배(20 pc)가 되면 연주 시차는 1/2인 0.05″로 작아진다.",
+  e:"(1) 연주 시차 0.1″(시차의 1/2임을 밝힘) 2점, 거리 10 pc 2점. 시차 0.2″를 그대로 연주 시차로 보아 5 pc로 답하면 거리 점수 없음.<br>(2) 작아진다 1점, 0.05″ 수치 1점, 연주 시차는 거리에 반비례한다는 까닭 2점."},
+
+ {s:"겉보기 등급과 절대 등급이 모두 2.0등급인 별이 있다. 이 별이 지금 거리의 10배인 곳으로 멀어진다면 겉보기 등급과 절대 등급은 각각 몇 등급이 되는지 까닭과 함께 서술하시오.", tag:"비상 · 02 밝기로 구하는 별까지의 거리 · 중",
+  c:[],
+  a:"현재 겉보기 등급과 절대 등급이 같으므로 이 별은 10 pc에 있다. 거리가 10배(100 pc)가 되면 밝기는 1/10² = 1/100로 어두워지고, 밝기 100배 차이는 5등급 차이이므로 겉보기 등급은 5만큼 커져 7.0등급이 된다. 절대 등급은 별을 10 pc 거리에 놓았다고 가정한 밝기이므로 실제 거리가 변해도 그대로 2.0등급이다.",
+  e:"· 겉보기 등급 7.0등급 2점 + 까닭(밝기가 거리의 제곱에 반비례 → 1/100 → 5등급 증가) 2점. 커진다(어두워진다)만 쓰고 수치가 없으면 1점.<br>· 절대 등급 2.0등급으로 변하지 않음 1점 + 까닭(10 pc 기준 밝기이므로 실제 밝기와 함께 그대로) 1점.<br>· 절대 등급도 변한다고 쓰면 절대 등급 항목 0점."}
+];
+
+const N = ["①","②","③","④","⑤"];
+document.getElementById("sheet").innerHTML = Q.map((q, i) => `
+<section class="q">
+  <h2><b>${i + 1}.</b><span>${q.s}<span class="tag">${q.tag}</span></span></h2>
+  ${q.p ? `<div class="box"><p>${q.p}</p></div>` : ""}
+  ${q.f ? `<figure>${q.f}</figure>` : ""}
+  ${q.t ? `<table><tr>${q.t.h.map(h => `<th>${h}</th>`).join("")}</tr>${q.t.r.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</table>` : ""}
+  ${q.s2 ? `<p style="margin:6px 0">${q.s2}</p>` : ""}
+  ${q.b ? `<div class="box"><div class="t">&lt;보기&gt;</div>${q.b.map(x => `<p>${x}</p>`).join("")}</div>` : ""}
+  ${q.ch ? `<div class="chh">${q.ch}</div>` : ""}
+  ${q.c.length ? `<ol class="ch" style="--w:${q.w || "100%"}">${q.c.map((c, j) => `<li data-n="${N[j]}">${c}</li>`).join("")}</ol>` : ""}
+  <button class="btn peek">${q.c.length ? "정답 보기" : "모범 답안 보기"}</button>
+  <div class="ans">${q.c.length ? `<strong>정답 ${q.a}</strong><br>${q.e}` : `<strong>모범 답안</strong><br>${q.a}<br><strong>채점 기준</strong><br>${q.e}`}</div>
+</section>`).join("");
+
+document.querySelectorAll(".peek").forEach(b => b.onclick = () => b.parentElement.classList.toggle("show"));
+const all = document.getElementById("all");
+all.onclick = () => {
+  const on = all.classList.toggle("on");
+  document.querySelectorAll(".q").forEach(q => q.classList.toggle("show", on));
+  all.textContent = on ? "정답·해설 숨기기" : "정답·해설 모두 보기";
+};
+</script>
+</body>
+</html>

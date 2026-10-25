@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>내신 AI 문제은행</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 시험지 한 장: 왼쪽 여백에 채점용 빨간 펜 줄, 본문은 문항 번호처럼 이어지는 목록 */
+:root{
+  --paper:#fbfbf8; --ink:#1c1f24; --muted:#636a73; --rule:#d9dcd6; --pen:#c4362b; --ok:#1f7a55; --chip:#eef0ea;
+  --display:"Nanum Myeongjo",serif; --body:"IBM Plex Sans KR",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#15171a;--ink:#e7e8e4;--muted:#9aa09f;--rule:#2d3134;--pen:#ef6a5c;--ok:#5cc497;--chip:#22262a;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#15171a;--ink:#e7e8e4;--muted:#9aa09f;--rule:#2d3134;--pen:#ef6a5c;--ok:#5cc497;--chip:#22262a;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.7 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet{max-width:880px;margin:0 auto;padding-block:48px 72px;border-left:2px solid var(--pen);padding-left:28px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.12em;color:var(--pen);text-transform:uppercase}
+h1{font:800 clamp(34px,6vw,52px)/1.15 var(--display);margin:8px 0 14px;text-wrap:balance}
+.lead{max-width:60ch;color:var(--muted);margin:0}
+.score{display:flex;flex-wrap:wrap;gap:28px;margin:32px 0 8px}
+.score div{min-width:0}
+.score b{display:block;font:800 34px/1 var(--display);font-variant-numeric:tabular-nums}
+.score span{font-size:13px;color:var(--muted)}
+h2{font:700 22px var(--display);margin:56px 0 18px;text-wrap:balance}
+.items{list-style:none;margin:0;padding:0;display:grid;gap:0;border-top:1px solid var(--rule)}
+.items li{border-bottom:1px solid var(--rule)}
+.items a{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:baseline;padding:18px 4px;color:inherit;text-decoration:none}
+.items a:hover .t,.items a:focus-visible .t{color:var(--pen)}
+.items a:focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+.n{font:500 14px var(--mono);color:var(--muted)}
+.t{font-weight:600;font-size:18px;transition:color .15s}
+.d{grid-column:2/4;font-size:14px;color:var(--muted);margin-top:-6px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.tag{font:500 12px var(--mono);background:var(--chip);border-radius:4px;padding:2px 8px;white-space:nowrap}
+.tag.ok{color:var(--ok)}
+.tag.wait{color:var(--pen)}
+.steps{counter-reset:s;list-style:none;margin:0;padding:0;display:grid;gap:18px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:14px}
+.steps li::before{content:counter(s,decimal-leading-zero);font:500 14px var(--mono);color:var(--pen);padding-top:3px}
+.steps b{display:block}
+.steps p{margin:2px 0 0;color:var(--muted);font-size:15px;max-width:62ch}
+.mark{display:inline-block;font:700 15px var(--display);color:var(--pen);border:2px solid var(--pen);border-radius:50%;width:30px;height:30px;line-height:26px;text-align:center;transform:rotate(-8deg);margin-right:6px}
+footer{margin-top:56px;font-size:13px;color:var(--muted)}
+@media (max-width:520px){.sheet{padding-left:16px}.items a{grid-template-columns:32px 1fr}.tags{grid-column:2;justify-content:flex-start}.d{grid-column:2}}
+@media (prefers-reduced-motion:reduce){.t{transition:none}}
+</style>
+</head>
+<body>
+
+<main class="sheet">
+  <div class="eyebrow">중3 과학 · 시제품</div>
+  <h1>내신 AI 문제은행</h1>
+  <p class="lead">학교 교과서와 시험 범위에 맞춰 문제를 새로 만들고, 정답을 모르는 다른 AI가 다시 풀어 검증한 문제은행입니다. 난이도와 소단원으로 골라 보고, 원하는 문항 수로 시험지를 바로 뽑을 수 있어요.</p>
+
+  <div class="score">
+    <div><b>186</b><span>문항</span></div>
+    <div><b>4</b><span>단원</span></div>
+    <div><b>0</b><span>정답 불일치 (객관식 134문항 교차 검증)</span></div>
+    <div><b>4</b><span>난이도 단계</span></div>
+  </div>
+
+  <h2>문제은행</h2>
+  <ul class="items">
+    <li><a href="repro/bank.html">
+      <span class="n">01</span><span class="t">5-1 생장과 생식</span>
+      <span class="tags"><span class="tag">100문항</span><span class="tag ok">교차 검증 완료</span></span>
+      <span class="d">세포 분열의 필요성, 체세포 분열과 양파 뿌리 끝 관찰, 감수 분열, 수정과 발생 · 최상 15문항 포함</span>
+    </a></li>
+    <li><a href="energy/bank.html">
+      <span class="n">02</span><span class="t">6-2 에너지의 전환과 이용</span>
+      <span class="tags"><span class="tag">50문항</span><span class="tag ok">교차 검증 완료</span></span>
+      <span class="d">전자기 유도와 발전기, 에너지 전환과 보존, 소비 전력·전력량·전기 요금 · 신유형 8문항</span>
+    </a></li>
+  </ul>
+
+  <h2>출판사 맞춤 세트</h2>
+  <ul class="items">
+    <li><a href="sets/energy-visang.html">
+      <span class="n">03</span><span class="t">에너지의 전환과 이용 · 비상교육판</span>
+      <span class="tags"><span class="tag">18문항</span></span>
+      <span class="d">간이 발전기(플라스틱 관과 LED), 자가발전 운동 기구, 소비 전력 띠 등 비상교육 교과서 탐구로 만든 세트</span>
+    </a></li>
+    <li><a href="sets/star-visang.html">
+      <span class="n">04</span><span class="t">7-1 별 · 비상교육판</span>
+      <span class="tags"><span class="tag">18문항</span><span class="tag">서술형 2</span></span>
+      <span class="d">시차 측정 활동지, 조도 앱 손전등 실험, 겉보기·절대 등급과 거리, 니크롬선과 별의 색</span>
+    </a></li>
+  </ul>
+
+  <h2>문제를 만드는 순서</h2>
+  <ol class="steps">
+    <li><div><b>유형 지도</b><p>기존 시험 문제를 문장 없이 '개념 · 묻는 방식 · 학생이 틀리는 지점'으로만 정리해 단원당 40개 안팎의 유형을 만듭니다.</p></div></li>
+    <li><div><b>교과서 카드</b><p>학교가 쓰는 출판사 교과서의 탐구 활동, 실험 장치, 용어 표기를 정리합니다. 같은 개념도 출판사마다 시험에 나오는 그림이 다르기 때문입니다.</p></div></li>
+    <li><div><b>출제</b><p>원본 문제를 보지 않는 출제 AI가 유형 지도와 교과서 카드만 보고 문항을 새로 씁니다. 유형 지도에 없는 신유형과 최상 난이도는 따로 만듭니다.</p></div></li>
+    <li><div><b>검증</b><p>정답과 난이도를 지운 사본을 다른 AI가 처음부터 풉니다. 답이 다르거나 조건이 모호하면 고치고, 난이도는 검증자 판정을 씁니다.</p></div></li>
+  </ol>
+
+  <footer><span class="mark">✓</span>시제품입니다. 그림은 단순 도형이고, 실제 서비스에서는 일러스트로 바뀝니다.</footer>
+</main>
+</body>
+</html>

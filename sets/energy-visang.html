@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>에너지 전환 비상교육판</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#f4f5f7;--paper:#fff;--ink:#1d2129;--muted:#6b7280;--line:#d9dde3;--accent:#1f7a5a;--accent-soft:#e6f3ee;--tag:#eef1f5}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121417;--paper:#1b1e23;--ink:#e6e8eb;--muted:#9aa1ab;--line:#2e333a;--accent:#4cc29a;--accent-soft:#1d3029;--tag:#262a31}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 "Noto Sans KR",system-ui,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 64px}
+header{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 24px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+header h1{margin:0;font-size:22px}
+header p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.btn{border:1px solid var(--accent);background:var(--paper);color:var(--accent);border-radius:8px;padding:8px 14px;font:inherit;font-weight:500;cursor:pointer}
+.btn.on{background:var(--accent);color:var(--paper)}
+.sheet{margin-top:16px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px;columns:2 420px;column-gap:40px;column-rule:1px solid var(--line)}
+.q{break-inside:avoid;margin:0 0 28px}
+.q h2{font-size:15px;font-weight:500;margin:0 0 8px;display:flex;gap:8px}
+.q h2 b{font-size:18px;font-weight:700}
+.tag{display:inline-block;font-size:11px;color:var(--muted);background:var(--tag);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.box{border:3px double var(--line);padding:8px 12px;margin:8px 0}
+.box .t{text-align:center;font-size:13px;color:var(--muted)}
+.box p{margin:2px 0}
+ol.ch{list-style:none;padding:0;margin:6px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--w,100%),1fr));gap:2px 12px}
+ol.ch li::before{content:attr(data-n) " "}
+figure{margin:8px 0;text-align:center;color:var(--ink)}
+figure svg{width:100%;max-width:320px;height:auto}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:4px 8px;text-align:center}
+th{background:var(--tag)}
+.ans{display:none;margin-top:8px;background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:14px}
+.ans strong{color:var(--accent)}
+.show .ans{display:block}
+.q .peek{margin-top:6px;font-size:12px;padding:3px 10px}
+@media print{.btn{display:none}.sheet{border:0}}
+</style>
+</head>
+<body>
+<div class="wrap"><a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:13px;color:var(--accent);text-decoration:none">← 처음으로</a>
+<header>
+  <div>
+    <h1>6-2 에너지의 전환과 이용 · 비상교육판 18문항</h1>
+    <p>비상교육 과학3 탐구 활동 기반</p>
+  </div>
+  <button class="btn" id="all">정답·해설 모두 보기</button>
+</header>
+<main class="sheet" id="sheet"></main>
+</div>
+
+<script>
+const T = (x, y, s) => `<text x="${x}" y="${y}" fill="currentColor" stroke="none">${s}</text>`;
+const led = (x, y) => `<path d="M${x} ${y-8} L${x} ${y+8} L${x+14} ${y} Z M${x+14} ${y-8} V${y+8}"/><path d="M${x+4} ${y-12} L${x+10} ${y-20} M${x+10} ${y-12} L${x+16} ${y-20}"/>`;
+const tube = (extra) => `<svg viewBox="0 0 320 150" fill="none" stroke="currentColor" stroke-width="2" font-size="13" font-family="Noto Sans KR">
+<rect x="30" y="40" width="260" height="36" rx="8"/><rect x="22" y="44" width="10" height="28" rx="2"/><rect x="288" y="44" width="10" height="28" rx="2"/>
+${[0,1,2,3,4,5].map(i=>`<ellipse cx="${130+i*12}" cy="58" rx="5" ry="22"/>`).join("")}
+${extra.magnet||`<rect x="58" y="47" width="44" height="22" rx="2"/>${T(64,63,"자석")}`}
+<path d="M130 80 V112 H150 M190 80 V112 H170"/>${led(152,112)}
+${T(148,140,"LED")}${T(196,30,"코일")}${T(232,98,"플라스틱 관")}${T(4,98,"마개")}
+${extra.arrow===false?"":`<path d="M40 20 H110 M48 14 L40 20 L48 26 M102 14 L110 20 L102 26"/>${T(118,25,"흔들기")}`}</svg>`;
+
+const Q = [
+ {s:"다음 생활 속 발전 장치에서 일어나는 에너지 전환으로 옳지 <u>않은</u> 것은?", tag:"비상 · 역학적 에너지가 전기 에너지로 전환되는 예 · 하",
+  c:["자전거 자가발전식 전조등: 바퀴의 운동 에너지 → 전기 에너지 → 빛에너지","풍력 발전기: 바람의 운동 에너지 → 전기 에너지","휴대용 소형 수력 발전기: 흐르는 물의 열에너지 → 전기 에너지","발광 인라인스케이트: 바퀴의 운동 에너지 → 전기 에너지 → 빛에너지","태블릿 배터리 충전: 전기 에너지 → 화학 에너지"],
+  a:"③", e:"흐르는 물은 운동 에너지를 가지고 있다. 소형 수력 발전기는 물의 운동 에너지로 날개를 돌려 전기 에너지를 얻는다."},
+
+ {s:"그림은 플라스틱 관에 에나멜선을 감아 만든 코일에 LED를 연결하고, 관 속에 네오디뮴 자석을 넣어 마개로 막은 간이 발전기이다. 이 관을 흔들 때에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?", tag:"비상 · 간이 발전기 만들기 · 중",
+  f:tube({}),
+  b:["ㄱ. 관을 더 빠르게 흔들수록 LED가 더 밝게 켜진다.","ㄴ. 흔들기를 멈추어 자석이 코일 속에 정지해 있을 때 LED가 가장 밝게 켜진다.","ㄷ. 관을 흔드는 동안 자석의 운동 에너지 일부가 전기 에너지로 전환된다."],
+  c:["ㄱ","ㄴ","ㄷ","ㄱ, ㄷ","ㄴ, ㄷ"], w:"30%", a:"④",
+  e:"ㄱ. 자석이 빠르게 움직일수록 코일을 지나는 자기장이 빠르게 변해 유도 전류가 세다. ㄴ. 자석이 정지하면 자기장 변화가 없어 전류가 흐르지 않으므로 LED는 꺼진다. ㄷ. 움직이는 자석의 운동 에너지가 코일에서 전기 에너지로 바뀐다."},
+
+ {s:"전자기 유도에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?", tag:"비상 · 발전 원리 추론하기 · 하",
+  b:["ㄱ. 자석이 코일 주위에서 움직여 코일을 지나는 자기장이 변할 때 코일에 전류가 흐르는 현상이다.","ㄴ. 공원의 자가발전 운동 기구 속 발전기는 이 현상을 이용하여 전기를 만든다.","ㄷ. 휴대용 선풍기의 전동기는 이 현상을 이용하여 전기 에너지를 운동 에너지로 바꾼다."],
+  c:["ㄱ","ㄱ, ㄴ","ㄱ, ㄷ","ㄴ, ㄷ","ㄱ, ㄴ, ㄷ"], w:"30%", a:"②",
+  e:"ㄷ. 전동기는 자기장 속에서 전류가 흐르는 코일이 힘을 받아 회전하는 원리를 이용한다. 전자기 유도를 이용하는 장치는 발전기이다."},
+
+ {s:"다음은 어느 학생의 탐구 기록이다.", tag:"비상 · 발전 원리 추론하기 · 중",
+  p:"손잡이를 돌리는 손전등, 손잡이를 누르는 손전등, 흔드는 손전등은 모두 전지가 없는데도 불이 켜졌다. 세 손전등은 작동 방법은 달라도 같은 원리로 전기를 만든다.",
+  s2:"이 손전등들과 같은 원리로 꼬마전구에 전류가 흐르는 경우만을 &lt;보기&gt;에서 있는 대로 고른 것은?",
+  b:["ㄱ. 코일을 감은 관 속에 네오디뮴 자석을 넣고 마개로 막은 뒤, 관을 책상 위에 가만히 놓아둘 때","ㄴ. 꼬마전구를 연결한 장난감 전동기의 축에 실을 감고 실을 빠르게 당겨 축을 돌릴 때","ㄷ. 세워 둔 자전거의 페달을 돌려 바퀴에 맞닿은 전조등 발전기가 돌 때"],
+  c:["ㄱ","ㄷ","ㄱ, ㄴ","ㄱ, ㄷ","ㄴ, ㄷ"], w:"30%", a:"⑤",
+  e:"ㄱ. 자석이 아무리 강해도 움직이지 않으면 코일을 지나는 자기장이 변하지 않는다. ㄴ. 전동기 축을 돌리면 내부 코일이 자석 사이에서 회전하므로 발전기처럼 유도 전류가 생긴다. ㄷ. 바퀴가 발전기를 돌려 전자기 유도가 일어난다."},
+
+ {s:"가정에서 사용하는 전기 기구와 전기 에너지의 주된 전환을 짝 지은 것으로 옳지 <u>않은</u> 것은?", tag:"비상 · 가정에서 전기 에너지 전환 찾기 · 하",
+  c:["전기밥솥: 전기 에너지 → 화학 에너지","전기난로: 전기 에너지 → 열에너지","선풍기: 전기 에너지 → 운동 에너지","세탁기: 전기 에너지 → 운동 에너지","텔레비전: 전기 에너지 → 빛에너지, 소리 에너지"],
+  a:"①", e:"전기밥솥은 전기 에너지를 주로 열에너지로 바꾸어 밥을 짓는다. 발열 기구는 열에너지로 전환한다."},
+
+ {s:"다음은 수력 발전소에 대한 설명이다.", tag:"비상 · 역학적 에너지가 전기 에너지로 전환되는 예 · 중",
+  p:"댐에 가두어 높은 곳에 모인 물이 관을 따라 아래로 떨어지면서 수차를 돌리고, 수차와 연결된 발전기에서 전기가 만들어진다.",
+  s2:"이에 대한 설명으로 옳지 <u>않은</u> 것은?",
+  c:["높은 곳에 모인 물은 위치 에너지를 가지고 있다.","물이 떨어지는 동안 위치 에너지가 운동 에너지로 전환된다.","발전기에서는 전자기 유도로 전기가 만들어진다.","물의 역학적 에너지 중 전기 에너지로 바뀌지 못한 일부는 소멸하여 없어진다.","흐르는 물에 담가 쓰는 소형 수력 발전기도 물의 운동 에너지를 전기 에너지로 바꾼다."],
+  a:"④", e:"전기 에너지로 바뀌지 못한 에너지는 열·소리 에너지 등으로 바뀔 뿐 없어지지 않는다. 전환 전후 에너지의 총량은 보존된다."},
+
+ {s:"그림과 같은 간이 발전기에서 코일에 유도 전류가 흐르지 <u>않는</u> 경우는?", tag:"비상 · 간이 발전기 만들기 · 하",
+  f:tube({arrow:false, magnet:`<rect x="138" y="47" width="44" height="22" rx="2"/>${T(144,63,"자석")}`}),
+  c:["관을 위아래로 빠르게 흔든다.","관을 세워 들고 있다가 자석이 관 속에서 코일을 지나 아래로 떨어지게 한다.","자석이 코일 한가운데에 오도록 관을 기울인 뒤 멈추어 그대로 둔다.","관은 책상에 고정하고, 다른 자석을 관 바깥의 코일 가까이에서 빠르게 왔다 갔다 하게 한다.","관을 수평으로 들고 좌우로 빠르게 흔든다."],
+  a:"③", e:"자석이 코일 속에 있더라도 멈추어 있으면 코일을 지나는 자기장이 변하지 않아 전류가 흐르지 않는다. 나머지는 모두 자석과 코일 사이에 상대적인 움직임이 있다."},
+
+ {s:"발전기와 같은 원리(전자기 유도)를 이용하는 것을 <u>두 가지</u> 고르면?", tag:"비상 · 역학적 에너지가 전기 에너지로 전환되는 예 · 중",
+  c:["발광 인라인스케이트의 바퀴","전기 자동차의 바퀴를 돌리는 전동기","스피커","전자석 기중기","자전거 자가발전식 전조등"], w:"45%",
+  a:"①, ⑤", e:"① 바퀴 속 자석이 코일 주위를 돌며 전류가 생긴다. ⑤ 바퀴에 연결된 발전기에서 전류가 생긴다. ②, ③은 자기장 속에서 전류가 받는 힘을, ④는 전류가 만드는 자기장을 이용한다."},
+
+ {s:"표는 어느 가정의 전기 기구를 조사하여 소비 전력 띠를 만들기 위해 정리한 것이다. 이에 대한 설명으로 옳은 것은?", tag:"비상 · 가전제품 소비 전력 비교 · 중",
+  t:{h:["전기 기구","주된 전환 에너지","소비 전력"],r:[["전기난로","열에너지","2000 W"],["전기밥솥","열에너지","1000 W"],["세탁기","운동 에너지","500 W"],["선풍기","운동 에너지","50 W"],["LED 조명","빛에너지","20 W"]]},
+  c:["전기난로는 1초 동안 2000 Wh의 전기 에너지를 사용한다.","선풍기를 2시간 사용한 전력량은 100 W이다.","소비 전력이 큰 전기 기구일수록 같은 시간 동안 전기 에너지를 적게 사용한다.","LED 조명을 10시간 켠 전력량은 전기난로를 10분 켠 전력량보다 크다.","전기밥솥을 30분 사용한 전력량은 세탁기를 1시간 사용한 전력량과 같다."],
+  a:"⑤", e:"① 1초 동안 2000 J을 사용한다. ② 50 W × 2 h = 100 Wh로 단위가 Wh이다. ③ 소비 전력이 클수록 같은 시간 동안 더 많이 사용한다. ④ LED 조명 20 W × 10 h = 200 Wh, 전기난로 2000 W × 1/6 h ≒ 333 Wh로 전기난로가 크다. ⑤ 1000 W × 0.5 h = 500 Wh, 500 W × 1 h = 500 Wh로 같다."},
+
+ {s:"공원의 자가발전 운동 기구에 휴대용 선풍기를 연결하고 페달을 돌렸더니 선풍기 날개가 돌았다. 이에 대한 설명으로 옳은 것을 <u>두 가지</u> 고르면?", tag:"비상 · 단원 도입 상황 · 중",
+  c:["운동 기구 속 발전기는 전기 에너지를 운동 에너지로 전환한다.","선풍기에서는 전기 에너지가 주로 운동 에너지로 전환된다.","페달을 돌리는 데 쓴 에너지 중 일부는 열에너지로 바뀌어 사라진다.","소비 전력이 5 W인 휴대용 선풍기는 1초 동안 5 J의 전기 에너지를 사용한다.","소비 전력이 더 큰 선풍기를 돌리면 페달을 돌리는 데 드는 에너지가 더 적다."],
+  a:"②, ④", e:"① 발전기는 페달의 운동 에너지를 전기 에너지로 바꾼다. ③ 열에너지는 주위로 퍼질 뿐 사라지지 않는다. ④ 1 W는 1초 동안 1 J을 사용하는 것이다. ⑤ 소비 전력이 크면 1초 동안 더 많은 전기 에너지가 필요하므로 페달을 돌리는 데 더 많은 에너지가 든다."},
+
+ {s:"전기 에너지를 효율적으로 이용하는 방법으로 옳지 <u>않은</u> 것은?", tag:"비상 · 소비 전력을 이용한 에너지 절약 실천하기 · 하",
+  c:["사용하지 않는 전기 기구의 플러그를 뽑아 대기 전력을 줄인다.","같은 기능이라면 에너지 소비 효율 5등급에 가까운 제품을 고른다.","소비 전력이 큰 전기난로는 사용 시간을 줄인다.","조명을 같은 밝기의 LED 조명으로 바꾼다.","냉장고 문을 여닫는 횟수를 줄인다."],
+  a:"②", e:"에너지 소비 효율 등급은 1등급에 가까울수록 같은 기능에 전기 에너지를 적게 사용한다."},
+
+ {s:"코일에 유도 전류가 흐르지 <u>않는</u> 경우를 <u>두 가지</u> 고르면?", tag:"비상 · 역학적 에너지가 전기 에너지로 전환되는 예 · 중",
+  c:["인라인스케이트 바퀴 속 자석이 코일 주위를 돌고 있을 때","강한 네오디뮴 자석을 코일 속에 넣어 두고 둘 다 움직이지 않을 때","자석 위에서 코일을 회전시킬 때","자석을 코일 입구에서 앞뒤로 왕복시킬 때","코일과 자석을 한 상자 안에 고정하고 상자째 들고 달릴 때"], w:"100%",
+  a:"②, ⑤", e:"②는 움직임이 없고, ⑤는 코일과 자석이 함께 움직여 상대적인 움직임이 없으므로 코일을 지나는 자기장이 변하지 않는다. 회전 운동과 왕복 운동도 상대적인 움직임이다."},
+
+ {s:"그림과 같이 손발전기 A와 B를 꼬마전구와 함께 전선으로 연결하고 A의 손잡이를 돌렸더니 꼬마전구가 켜지고 B의 손잡이도 돌아갔다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?", tag:"비상 · 발전기와 전동기 · 상",
+  f:`<svg viewBox="0 0 320 130" fill="none" stroke="currentColor" stroke-width="2" font-size="13" font-family="Noto Sans KR"><circle cx="50" cy="55" r="28"/><path d="M50 55 L72 30 M72 30 H90"/>${T(22,112,"손발전기 A")}<circle cx="270" cy="55" r="28"/><path d="M270 55 L248 30 M248 30 H230"/>${T(234,112,"손발전기 B")}<path d="M78 48 H145 M175 48 H242 M78 64 Q160 90 242 64"/><circle cx="160" cy="48" r="14"/><path d="M152 52 Q156 38 160 48 Q164 38 168 52"/>${T(134,22,"꼬마전구")}<path d="M20 20 A35 35 0 0 1 45 8 M38 4 L45 8 L39 14"/>${T(4,14,"돌림")}</svg>`,
+  b:["ㄱ. B는 전동기처럼 작동하여 전기 에너지를 운동 에너지로 전환한다.","ㄴ. A의 손잡이를 더 빠르게 돌리면 꼬마전구가 더 밝아진다.","ㄷ. A의 손잡이를 10회 돌리면 B의 손잡이는 10회보다 많이 회전한다."],
+  c:["ㄱ","ㄷ","ㄱ, ㄴ","ㄴ, ㄷ","ㄱ, ㄴ, ㄷ"], w:"30%", a:"③",
+  e:"ㄱ. A에서 만든 전기 에너지가 B의 코일에 흘러 B의 손잡이를 돌린다. ㄴ. 빠르게 돌릴수록 유도 전류가 세다. ㄷ. A에서 만든 전기 에너지 중 일부가 꼬마전구에서 빛·열에너지로 전환되므로 B에 전달되는 에너지는 더 적어 B는 10회보다 적게 회전한다."},
+
+ {s:"간이 발전기를 흔들었더니 LED가 희미하게 켜졌다. LED를 더 밝게 켜기 위한 방법으로 옳은 것은?", tag:"비상 · 간이 발전기 만들기 · 하",
+  f:tube({}),
+  c:["에나멜선을 더 많이 감아 코일의 감은 수를 늘린다.","네오디뮴 자석의 극을 반대로 뒤집어 넣는다.","관을 더 천천히 흔든다.","네오디뮴 자석 대신 자기력이 약한 고무 자석을 넣는다.","자석이 코일 한가운데에 머물도록 관을 살살 기울인다."],
+  a:"①", e:"코일의 감은 수가 많을수록, 자석의 세기가 셀수록, 자석이 빠르게 움직일수록 유도 전류가 세진다. 자석의 극을 바꾸면 전류의 방향만 바뀐다."},
+
+ {s:"그림은 소비 전력이 100 W인 텔레비전을 켰을 때 1초 동안 공급된 전기 에너지가 다른 에너지로 전환되는 양을 나타낸 것이다. 열에너지 (   )는 몇 J인가?", tag:"비상 · 에너지 전환 카드 놀이 · 하",
+  f:`<svg viewBox="0 0 320 130" fill="none" stroke="currentColor" stroke-width="2" font-size="13" font-family="Noto Sans KR"><rect x="6" y="40" width="104" height="50" rx="6"/>${T(18,60,"전기 에너지")}${T(22,80,"(1초 동안)")}<path d="M110 65 H140 M140 20 V110 M140 20 H170 M140 65 H170 M140 110 H170 M162 14 L170 20 L162 26 M162 59 L170 65 L162 71 M162 104 L170 110 L162 116"/>${T(178,25,"빛에너지 30 J")}${T(178,70,"소리 에너지 10 J")}${T(178,115,"열에너지 (   ) J")}</svg>`,
+  c:["20 J","40 J","50 J","60 J","70 J"], w:"30%", a:"④",
+  e:"소비 전력 100 W는 1초 동안 100 J의 전기 에너지를 사용한다는 뜻이다. 에너지는 보존되므로 100 J = 30 J + 10 J + 열에너지, 열에너지 = 60 J."},
+
+ {s:"표는 밝기가 같은 두 조명 A, B를 켰을 때 1초 동안 나오는 에너지를 나타낸 것이다. 이에 대한 설명으로 옳은 것만을 &lt;보기&gt;에서 있는 대로 고른 것은?", tag:"비상 · 가전제품 소비 전력 비교 · 상",
+  t:{h:["조명","빛에너지","열에너지"],r:[["A (LED 조명)","9 J","3 J"],["B (백열전구)","9 J","51 J"]]},
+  b:["ㄱ. 같은 시간 동안 열에너지로 전환되는 양은 B가 A보다 많다.","ㄴ. B의 소비 전력은 60 W이다.","ㄷ. 두 조명을 하루 5시간씩 10일 동안 켤 때, A를 사용하면 B를 사용할 때보다 전력량을 2.4 kWh 줄일 수 있다."],
+  c:["ㄱ","ㄱ, ㄴ","ㄱ, ㄷ","ㄴ, ㄷ","ㄱ, ㄴ, ㄷ"], w:"30%", a:"⑤",
+  e:"ㄱ. 1초 동안 B는 51 J, A는 3 J을 열에너지로 바꾼다. ㄴ. B는 1초 동안 9 J + 51 J = 60 J을 사용하므로 60 W이다(A는 12 W). ㄷ. 소비 전력 차이 48 W × 50 h = 2400 Wh = 2.4 kWh."},
+
+ {s:"표는 에너지 전환 카드 놀이에서 뽑은 카드를 정리한 것이다. (가)~(다)에 알맞은 것을 옳게 짝 지은 것은?", tag:"비상 · 에너지 전환 카드 놀이 · 하",
+  t:{h:["전기 기구 카드","에너지 전환"],r:[["전기난로","전기 에너지 → (가)"],["세탁기","전기 에너지 → (나)"],["태블릿 충전","(다) → 화학 에너지"]]},
+  c:["(가) 열에너지 (나) 운동 에너지 (다) 전기 에너지","(가) 열에너지 (나) 화학 에너지 (다) 전기 에너지","(가) 빛에너지 (나) 운동 에너지 (다) 화학 에너지","(가) 열에너지 (나) 운동 에너지 (다) 화학 에너지","(가) 운동 에너지 (나) 열에너지 (다) 전기 에너지"],
+  a:"①", e:"전기난로는 열에너지, 세탁기는 운동 에너지로 바꾼다. 충전할 때는 공급된 전기 에너지가 배터리에 화학 에너지로 저장되므로 (다)는 입력 에너지인 전기 에너지이다."},
+
+ {s:"그림과 같이 코일에 LED를 연결하고 자석의 N극을 코일 속으로 넣었더니 LED가 켜졌다. 이에 대한 설명으로 옳지 <u>않은</u> 것은? (단, LED는 한쪽 방향으로 전류가 흐를 때만 켜진다.)", tag:"비상 · 간이 발전기 만들기 · 중",
+  f:`<svg viewBox="0 0 320 130" fill="none" stroke="currentColor" stroke-width="2" font-size="13" font-family="Noto Sans KR"><rect x="10" y="36" width="70" height="26"/><line x1="45" y1="36" x2="45" y2="62"/>${T(20,54,"S")}${T(58,54,"N")}<path d="M20 22 H72 M64 16 L72 22 L64 28"/>${[0,1,2,3,4,5,6,7].map(i=>`<ellipse cx="${115+i*15}" cy="49" rx="7" ry="22"/>`).join("")}${T(205,20,"코일")}<path d="M115 71 V100 H155 M220 71 V100 H175"/>${led(157,100)}${T(152,124,"LED")}</svg>`,
+  c:["자석을 더 빠르게 넣으면 LED가 더 밝게 켜진다.","자석을 끝까지 넣은 뒤 멈추어 두어도 LED는 계속 켜져 있다.","자석은 고정하고 코일을 움직여 N극이 코일 속으로 들어가게 해도 LED가 켜진다.","코일 속에 넣었던 자석을 다시 빼낼 때는 LED가 켜지지 않는다.","자석을 뒤집어 S극을 코일 속에 넣었다가 빼내면, 빼낼 때 LED가 켜진다."],
+  a:"②", e:"② 자석이 멈추면 자기장 변화가 없어 전류가 흐르지 않으므로 LED가 꺼진다. ③ 코일을 움직여도 상대적인 움직임이 같으면 같은 방향의 전류가 생긴다. ④ N극을 뺄 때는 넣을 때와 반대 방향으로 전류가 흐르려 하므로 LED가 켜지지 않는다. ⑤ S극을 뺄 때는 N극을 넣을 때와 같은 방향의 전류가 생기므로 LED가 켜진다."}
+];
+
+const N = ["①","②","③","④","⑤"];
+document.getElementById("sheet").innerHTML = Q.map((q, i) => `
+<section class="q">
+  <h2><b>${i + 1}.</b><span>${q.s}<span class="tag">${q.tag}</span></span></h2>
+  ${q.p ? `<div class="box"><p>${q.p}</p></div>` : ""}
+  ${q.f ? `<figure>${q.f}</figure>` : ""}
+  ${q.t ? `<table><tr>${q.t.h.map(h => `<th>${h}</th>`).join("")}</tr>${q.t.r.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</table>` : ""}
+  ${q.s2 ? `<p style="margin:6px 0">${q.s2}</p>` : ""}
+  ${q.b ? `<div class="box"><div class="t">&lt;보기&gt;</div>${q.b.map(x => `<p>${x}</p>`).join("")}</div>` : ""}
+  <ol class="ch" style="--w:${q.w || "100%"}">${q.c.map((c, j) => `<li data-n="${N[j]}">${c}</li>`).join("")}</ol>
+  <button class="btn peek">정답 보기</button>
+  <div class="ans"><strong>정답 ${q.a}</strong><br>${q.e}</div>
+</section>`).join("");
+
+document.querySelectorAll(".peek").forEach(b => b.onclick = () => b.parentElement.classList.toggle("show"));
+const all = document.getElementById("all");
+all.onclick = () => {
+  const on = all.classList.toggle("on");
+  document.querySelectorAll(".q").forEach(q => q.classList.toggle("show", on));
+  all.textContent = on ? "정답·해설 숨기기" : "정답·해설 모두 보기";
+};
+</script>
+</body>
+</html>
