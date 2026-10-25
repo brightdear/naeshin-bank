@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>우주 문제은행</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#f4f5f7;--paper:#fff;--ink:#1d2129;--muted:#6b7280;--line:#d9dde3;--accent:#1f7a5a;--accent-soft:#e6f3ee;--tag:#eef1f5;--warn:#b45309;--warn-soft:#fdf2e3;
+--d1:#3b82a0;--d2:#1f7a5a;--d3:#b7791f;--d4:#b23b3b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121417;--paper:#1b1e23;--ink:#e6e8eb;--muted:#9aa1ab;--line:#2e333a;--accent:#4cc29a;--accent-soft:#1d3029;--tag:#262a31;--warn:#f0b35a;--warn-soft:#33281a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 "Noto Sans KR",system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 64px}
+header{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 24px}
+header h1{margin:0;font-size:22px}
+header p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.stat{background:var(--tag);border-radius:8px;padding:6px 12px;font-size:13px}
+.stat b{font-size:16px;margin-left:4px}
+.bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin-top:12px}
+.bar span{display:block}
+.panel{margin-top:16px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 24px;display:grid;gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.row > label{width:64px;font-size:13px;color:var(--muted)}
+.chip{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:3px 12px;font:inherit;font-size:13px;cursor:pointer}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.btn{border:1px solid var(--accent);background:var(--paper);color:var(--accent);border-radius:8px;padding:7px 14px;font:inherit;font-weight:500;cursor:pointer}
+.btn.solid{background:var(--accent);color:var(--paper)}
+.exam{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:14px}
+.exam input{width:56px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);font:inherit}
+.count{font-size:13px;color:var(--muted)}
+.sheet{margin-top:16px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px;columns:2 440px;column-gap:40px;column-rule:1px solid var(--line)}
+.q{break-inside:avoid;margin:0 0 30px}
+.q h2{font-size:15px;font-weight:500;margin:0 0 6px;display:flex;gap:8px}
+.q h2 b{font-size:18px;font-weight:700}
+.meta{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.tag{font-size:11px;color:var(--muted);background:var(--tag);border-radius:4px;padding:1px 6px}
+.lv{font-size:11px;color:var(--paper);border-radius:4px;padding:1px 6px;font-weight:700}
+.lv.하{background:var(--d1)}.lv.중{background:var(--d2)}.lv.상{background:var(--d3)}.lv.최상{background:var(--d4)}
+.tag.new{color:var(--warn);background:var(--warn-soft)}
+.tag.bad{color:var(--paper);background:var(--d4)}
+.box{border:3px double var(--line);padding:8px 12px;margin:8px 0}
+.box .t{text-align:center;font-size:13px;color:var(--muted)}
+.box p{margin:2px 0}
+ol.ch{list-style:none;padding:0;margin:6px 0 0;display:grid;gap:2px}
+ol.ch li::before{content:attr(data-n) " "}
+figure{margin:8px 0;text-align:center}
+figure svg{width:100%;max-width:340px;height:auto}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:4px 8px;text-align:center}
+th{background:var(--tag)}
+.write{border:1px dashed var(--line);border-radius:6px;height:90px;margin-top:6px}
+.ans{display:none;margin-top:8px;background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:14px}
+.ans strong{color:var(--accent)}
+.ans .v{margin-top:6px;font-size:12px;color:var(--muted)}
+.show .ans{display:block}
+.peek{margin-top:6px;font-size:12px;padding:3px 10px}
+.empty{color:var(--muted);text-align:center;padding:40px 0}
+@media print{header,.panel,.peek{display:none}.sheet{border:0;padding:0}body{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap"><a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:13px;color:var(--accent);text-decoration:none">← 처음으로</a>
+<header>
+  <h1>7-2 우주 · 문제은행</h1>
+  <p id="sub"></p>
+  <div class="stats" id="stats"></div>
+  <div class="bar" id="bar"></div>
+</header>
+
+<section class="panel">
+  <div class="row" data-key="difficulty"><label>난이도</label></div>
+  <div class="row" data-key="sub"><label>소주제</label></div>
+  <div class="row" data-key="format"><label>형식</label></div>
+  <div class="row" data-key="publisher"><label>출판사</label></div>
+  <div class="row" data-key="kind"><label>유형</label></div>
+  <div class="exam">
+    <strong>시험지 만들기</strong>
+    하 <input id="n하" type="number" min="0" value="5">
+    중 <input id="n중" type="number" min="0" value="8">
+    상 <input id="n상" type="number" min="0" value="5">
+    최상 <input id="n최상" type="number" min="0" value="2">
+    <button class="btn solid" id="make">현재 필터에서 뽑기</button>
+    <button class="btn" id="reset">전체 보기</button>
+    <button class="btn" id="all">정답·해설 모두 보기</button>
+    <span class="count" id="count"></span>
+  </div>
+</section>
+
+<main class="sheet" id="sheet"></main>
+</div>
+
+<script src="bank_data.js"></script>
+<script>
+const BANK = window.BANK || {problems: [], verify: {}};
+const P = BANK.problems;
+const SUB = {A: "우리은하와 은하수", B: "성단과 성운", C: "우주 팽창과 외부 은하", D: "우주 탐사"};
+const LV = ["하", "중", "상", "최상"];
+const N = ["①", "②", "③", "④", "⑤"];
+const kind = p => p.type_id === "NEW" ? "신유형" : "기존 유형";
+const val = (p, k) => k === "kind" ? kind(p) : k === "sub" ? SUB[p.sub] : p[k];
+
+const filters = {difficulty: new Set(), sub: new Set(), format: new Set(), publisher: new Set(), kind: new Set()};
+let picked = null;
+
+document.getElementById("sub").textContent =
+  `중3 과학 · 비상교육/공통 · 클린룸 출제 ${P.length}문항 · 정답 교차 검증 포함`;
+
+function stats() {
+  const c = {}; LV.forEach(l => c[l] = P.filter(p => p.difficulty === l).length);
+  const nNew = P.filter(p => p.type_id === "NEW").length;
+  const v = BANK.verify || {};
+  const nBad = P.filter(p => v[p.id] && v[p.id].match === false).length;
+  document.getElementById("stats").innerHTML =
+    `<span class="stat">전체<b>${P.length}</b></span>` +
+    LV.map(l => `<span class="stat">${l}<b>${c[l]}</b></span>`).join("") +
+    `<span class="stat">신유형<b>${nNew}</b></span>` +
+    (Object.keys(v).length ? `<span class="stat">검증 불일치<b>${nBad}</b></span>` : "");
+  const col = {하: "var(--d1)", 중: "var(--d2)", 상: "var(--d3)", 최상: "var(--d4)"};
+  document.getElementById("bar").innerHTML =
+    LV.map(l => `<span style="width:${100 * c[l] / (P.length || 1)}%;background:${col[l]}"></span>`).join("");
+}
+
+function chips() {
+  document.querySelectorAll(".row[data-key]").forEach(row => {
+    const k = row.dataset.key;
+    const opts = k === "difficulty" ? LV : [...new Set(P.map(p => val(p, k)))].filter(Boolean).sort();
+    opts.forEach(o => {
+      const b = document.createElement("button");
+      b.className = "chip"; b.textContent = o;
+      b.onclick = () => {
+        filters[k].has(o) ? filters[k].delete(o) : filters[k].add(o);
+        b.classList.toggle("on"); picked = null; render();
+      };
+      row.appendChild(b);
+    });
+  });
+}
+
+const pass = p => Object.entries(filters).every(([k, s]) => !s.size || s.has(val(p, k)));
+
+function html(p, i) {
+  const v = (BANK.verify || {})[p.id];
+  const essay = !p.choices || !p.choices.length;
+  const ans = Array.isArray(p.answer) ? p.answer.map(n => N[n - 1]).join(", ") : p.answer;
+  return `<section class="q">
+  <div class="meta"><span class="lv ${p.difficulty}">${p.difficulty}</span>
+    <span class="tag">${SUB[p.sub]}</span><span class="tag">${p.format}</span><span class="tag">${p.publisher}</span>
+    ${p.type_id === "NEW" ? `<span class="tag new">신유형</span>` : `<span class="tag">${p.type_id}</span>`}
+    ${v && v.match === false ? `<span class="tag bad">검증 불일치</span>` : ""}</div>
+  <h2><b>${i + 1}.</b><span>${p.stem}</span></h2>
+  ${p.passage ? `<div class="box"><p>${p.passage}</p></div>` : ""}
+  ${p.figure_svg ? `<figure>${p.figure_svg}</figure>` : ""}
+  ${p.table ? `<table><tr>${p.table.h.map(h => `<th>${h}</th>`).join("")}</tr>${p.table.r.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</table>` : ""}
+  ${p.bogi ? `<div class="box"><div class="t">&lt;보기&gt;</div>${p.bogi.map(x => `<p>${x}</p>`).join("")}</div>` : ""}
+  ${essay ? `<div class="write"></div>` : `<ol class="ch">${p.choices.map((c, j) => `<li data-n="${N[j]}">${c}</li>`).join("")}</ol>`}
+  <button class="btn peek">${essay ? "모범 답안" : "정답 보기"}</button>
+  <div class="ans"><strong>${essay ? "모범 답안" : "정답 " + ans}</strong><br>${essay ? ans + "<br><br><strong>채점 기준</strong><br>" + (p.scoring || "") : p.explanation}
+    ${p.new_type ? `<div class="v">신유형: ${p.new_type}</div>` : ""}
+    ${v ? `<div class="v">교차 검증: ${v.match ? "일치" : "불일치 · 검증자 답 " + v.solver_answer + " · " + (v.note || "")}</div>` : ""}</div>
+</section>`;
+}
+
+function render() {
+  const list = picked || P.filter(pass);
+  document.getElementById("count").textContent = picked ? `시험지 ${list.length}문항` : `${list.length}문항 표시 중`;
+  const sheet = document.getElementById("sheet");
+  sheet.innerHTML = list.length ? list.map(html).join("") : `<p class="empty">조건에 맞는 문항이 없습니다.</p>`;
+  sheet.querySelectorAll(".peek").forEach(b => b.onclick = () => b.parentElement.classList.toggle("show"));
+}
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+document.getElementById("make").onclick = () => {
+  const pool = P.filter(pass);
+  picked = LV.flatMap(l => shuffle(pool.filter(p => p.difficulty === l))
+    .slice(0, Math.max(0, +document.getElementById("n" + l).value || 0)));
+  render();
+};
+document.getElementById("reset").onclick = () => {
+  picked = null;
+  Object.values(filters).forEach(s => s.clear());
+  document.querySelectorAll(".chip.on").forEach(c => c.classList.remove("on"));
+  render();
+};
+document.getElementById("all").onclick = e => {
+  const on = e.target.classList.toggle("solid");
+  document.querySelectorAll(".q").forEach(q => q.classList.toggle("show", on));
+};
+
+stats(); chips(); render();
+</script>
+</body>
+</html>
