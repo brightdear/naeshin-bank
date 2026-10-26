@@ -180,7 +180,11 @@ function home() {
     el("div", { class: "card" },
       el("h2", {}, "세 단원 섞어서 모의고사"),
       el("p", { class: "muted" }, "기말 범위 전체에서 25문항을 쉬운 문제부터 차례로 내요."),
-      el("button", { class: "primary", onclick: () => startSet(DATA.units.map(u => u.key), 25, false, "기말 모의고사") }, "모의고사 시작"))
+      el("button", { class: "primary", onclick: () => startSet(DATA.units.map(u => u.key), 25, false, "기말 모의고사") }, "모의고사 시작")),
+    el("div", { class: "card" },
+      el("h2", {}, "모든 문제 보기"),
+      el("p", { class: "muted" }, `전체 ${Object.keys(ITEMS).length}문항을 단원·소주제·난이도로 골라 보고, 문항마다 정답과 해설을 펼쳐 볼 수 있어요.`),
+      el("button", { onclick: () => browse({}) }, "문제 둘러보기"))
   );
   window.scrollTo(0, 0);
 }
@@ -202,11 +206,11 @@ function startReview(all) {
   show();
 }
 
-function renderQ(q) {
+function renderQ(q, label) {
   const box = el("div", { class: "card" },
     el("div", { class: "qmeta" },
       el("span", {}, el("span", { class: "pill" }, q.difficulty || ""), el("span", { class: "muted" }, unitTitle(q.unit))),
-      el("span", { class: "muted" }, `${RUN.i + 1} / ${RUN.qs.length}`)),
+      el("span", { class: "muted" }, label || `${RUN.i + 1} / ${RUN.qs.length}`)),
     rich(el("p", { class: "stem" }), q.stem));
   if (q.passage) box.append(rich(el("div", { class: "passage" }), q.passage));
   if (q.figure_svg) { const f = el("div", { class: "fig" }); f.innerHTML = q.figure_svg; box.append(f); }
@@ -299,6 +303,49 @@ function result() {
   window.scrollTo(0, 0);
 }
 function subName(q) { const u = DATA.units.find(u => u.key === q.unit); return (u && u.subs[q.sub]) || q.sub; }
+
+// ---------- 모든 문제 보기 ----------
+function browse(f) {
+  const unit = f.unit || DATA.units[0].key;
+  const u = DATA.units.find(x => x.key === unit);
+  const all = Object.values(ITEMS).filter(q => q.unit === unit && (!f.sub || q.sub === f.sub) && (!f.lv || q.difficulty === f.lv))
+    .sort((a, b) => a.id.localeCompare(b.id, "ko", { numeric: true }));
+  const pick = (opts, val, key) => el("select", { onchange: e => browse({ ...f, [key]: e.target.value || undefined, ...(key === "unit" ? { sub: undefined } : {}) }) },
+    opts.map(([v, t]) => { const o = el("option", { value: v }, t); if ((val || "") === v) o.selected = true; return o; }));
+  const list = el("div", {});
+  let shown = 0;
+  function more() {
+    all.slice(shown, shown + 15).forEach((q, i) => {
+      const card = renderQ(q, `${shown + i + 1} / ${all.length}`);
+      if (isChoice(q)) card.append(el("div", { class: "choices" }, q.choices.map((c, j) =>
+        el("div", { class: "choice" }, el("span", { class: "no" }, NO[j]), el("span", {}, choiceText(c))))));
+      if (q.textbook_tags) card.append(el("p", { class: "muted" },
+        (q.textbook_tags.mode === "exclude" ? "제외 교재: " : "해당 교재: ") + q.textbook_tags.books.join(", ")));
+      const ans = el("div", { class: "hidden" },
+        el("div", { class: "feedback ok" }, el("b", {}, "정답"),
+          isChoice(q) ? q.answer.map(a => NO[a - 1]).join(", ") : choiceText(q.answer)),
+        q.scoring && !isChoice(q) ? el("div", { class: "feedback self" }, el("b", {}, "채점 기준"), scoringText(q.scoring)) : "",
+        q.explanation ? el("div", { class: "feedback self" }, el("b", {}, "해설"), q.explanation) : "");
+      const tg = el("button", { onclick: () => { ans.classList.toggle("hidden"); tg.textContent = ans.classList.contains("hidden") ? "정답·해설 보기" : "접기"; } }, "정답·해설 보기");
+      card.append(el("div", { class: "row", style: "margin-top:12px" }, tg), ans);
+      list.append(card);
+    });
+    shown = Math.min(shown + 15, all.length);
+    moreBtn.classList.toggle("hidden", shown >= all.length);
+  }
+  const moreBtn = el("button", { class: "primary", style: "width:100%", onclick: more }, "더 보기");
+  setFoot([el("button", { class: "primary", onclick: home }, "처음으로")]);
+  app.replaceChildren(
+    el("header", {}, el("h1", {}, "모든 문제 보기")),
+    el("div", { class: "card" }, el("div", { class: "row" },
+      pick(DATA.units.map(x => [x.key, x.title]), unit, "unit"),
+      pick([["", "소주제 전체"], ...Object.entries(u.subs).map(([k, v]) => [k, v])], f.sub, "sub"),
+      pick([["", "난이도 전체"], ["하", "하"], ["중", "중"], ["상", "상"], ["최상", "최상"]], f.lv, "lv")),
+      el("p", { class: "muted" }, `${all.length}문항`)),
+    list, moreBtn);
+  more();
+  window.scrollTo(0, 0);
+}
 
 function report() {
   const rows = {};
