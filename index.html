@@ -102,7 +102,9 @@ body.paper-mode .wrap{max-width:860px}
 .pq table.pt th,.pq table.pt td{padding:1px 10px;white-space:nowrap}
 .pq table.pt td.no{border:none;padding-left:0;text-align:left}
 .pq table.pt tr:first-child th:first-child{border:none;background:none}
-.pq .wbox{border:1px solid #9aa7ad;border-radius:3px;min-height:92px;margin-top:6px}
+.pq .wbox{border:1px solid #9aa7ad;border-radius:3px;margin-top:6px;position:relative}
+.pq .wbox.short{margin-top:4px}
+.pq .wbox .wl{position:absolute;top:3px;left:6px;font-size:11px;color:#5a6870}
 .pq{cursor:pointer;border-radius:4px;outline:2px solid transparent;outline-offset:4px;transition:outline-color .15s}
 .pq:hover{outline-color:#d5e4ea}
 .pq.sel{outline-color:#1f6f8b}
@@ -520,8 +522,23 @@ function paperQ(q, n, showLv, showId) {
     const len = Math.max(...q.choices.map(c => choiceText(c).length));
     box.append(el("div", { class: "ch " + (len <= 5 ? "c5" : len <= 9 ? "c3" : len <= 16 ? "c2" : "c1") },
       q.choices.map((c, j) => el("div", {}, NO[j] + " " + glue(choiceText(c))))));
-  } else box.append(el("div", { class: "wbox" }));
+  } else box.append(answerBoxes(q));
   return box;
+}
+function answerBoxes(q) {
+  // 답 칸 높이를 모범 답안 길이에 맞춘다. 단답형은 한 줄, 서술형은 (답 줄 수 + 1)줄, 소문항마다 칸을 나눈다.
+  const ans = String(q.answer || "");
+  const short = /단답|순서/.test(q.format || "");
+  // 소문항 (1)(2)로 먼저 나누고, 없으면 (가)(나) 기호로 나눈다.
+  let parts = ans.split(/(?=\(\d\))/).map(s => s.trim()).filter(Boolean);
+  if (!(parts.length > 1 && /^\(\d\)/.test(parts[0]))) parts = ans.split(/,?\s*(?=\([가-하]\))/).map(s => s.trim()).filter(Boolean);
+  const multi = parts.length > 1 && /^\((\d|[가-하])\)/.test(parts[0]);
+  const lines = t => short ? 1 : Math.max(2, Math.ceil(t.replace(/^\((\d|[가-하])\)\s*/, "").length / 26) + 1);
+  return el("div", { class: "wboxes" }, (multi ? parts : [ans]).map(p => {
+    const lab = multi ? p.match(/^\((\d|[가-하])\)/)[0] : "";
+    return el("div", { class: "wbox" + (short ? " short" : ""), style: `min-height:${lines(p) * 21 + 10}px` },
+      lab ? el("span", { class: "wl" }, lab) : "");
+  }));
 }
 function parsePairs(choices) {
   const lab = String.raw`(?:[㉠-㉻]|\([가-하]\)|[A-Z])`;
