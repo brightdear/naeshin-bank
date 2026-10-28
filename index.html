@@ -99,10 +99,9 @@ body.paper-mode .wrap{max-width:860px}
 .pq .ch.c3 div,.pq .ch.c5 div{white-space:nowrap}
 .pq .ch div{padding-left:1.25em;text-indent:-1.25em}
 .pq .wbox{border:1px solid #9aa7ad;border-radius:3px;min-height:92px;margin-top:6px}
-.pq .qtool{position:absolute;top:-2px;right:0;display:flex;gap:4px;opacity:0;transition:opacity .15s}
-.pq:hover .qtool{opacity:1}
-@media (hover:none){.pq .qtool{opacity:1;top:-18px}}
-.pq .qtool button{font-size:10.5px;padding:0 7px;border-radius:6px;background:#fff;color:#333;border:1px solid #bbb;line-height:1.7}
+.pq{cursor:pointer;border-radius:4px;outline:2px solid transparent;outline-offset:4px;transition:outline-color .15s}
+.pq:hover{outline-color:#d5e4ea}
+.pq.sel{outline-color:#1f6f8b}
 .sec{font-size:15px;font-weight:800;color:#1f3b4d;margin:0 0 10px;padding-bottom:4px;border-bottom:1.5px solid #1f3b4d}
 .quick{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid #6b7b83;border-left:1px solid #6b7b83;margin-bottom:12px;font-size:12px}
 .quick div{border-right:1px solid #6b7b83;border-bottom:1px solid #6b7b83;padding:2px 6px}
@@ -113,7 +112,8 @@ body.paper-mode .wrap{max-width:860px}
   @page{size:A4;margin:0}
   body,body.paper-mode{background:#fff}
   .wrap{max-width:none;padding:0;margin:0}
-  .ptools,.foot,.qtool,header{display:none!important}
+  .ptools,.foot,header{display:none!important}
+  .pq,.pq.sel{outline:none}
   .pclip{overflow:visible}
   .pages{transform:none!important;height:auto!important;width:auto}
   .page{margin:0;box-shadow:none;break-after:page}
@@ -554,7 +554,22 @@ function paper(qs, opts) {
       (x.review_group === q.review_group || (x.sub === q.sub && x.difficulty === q.difficulty))));
     cands.sort((a, b) => (a.review_group === q.review_group ? 0 : 1) - (b.review_group === q.review_group ? 0 : 1));
     if (!cands.length) { alert("바꿀 수 있는 비슷한 문항이 없어요."); return; }
-    list[list.indexOf(q)] = cands[0]; draw();
+    list[list.indexOf(q)] = cands[0]; picked = cands[0]; draw();
+    const b = pagesBox.querySelector(".pq.sel"); picked = null; if (b) select(cands[0], b);
+  }
+  let picked = null;
+  function baseFoot() {
+    setFoot([el("button", { onclick: leave }, "처음으로"), el("button", { class: "primary", onclick: () => window.print() }, "인쇄 · PDF 저장")]);
+  }
+  function select(q, b) {
+    // 문항을 누르면 선택되고, 아래 막대에서 바꾸거나 뺀다(시험지 위에는 버튼을 띄우지 않는다).
+    pagesBox.querySelectorAll(".pq.sel").forEach(x => x.classList.remove("sel"));
+    if (picked === q) { picked = null; baseFoot(); return; }
+    picked = q; b.classList.add("sel");
+    const n = list.indexOf(q) + 1;
+    setFoot([el("button", { onclick: () => { picked = null; pagesBox.querySelectorAll(".pq.sel").forEach(x => x.classList.remove("sel")); baseFoot(); } }, "선택 해제"),
+      el("button", { class: "primary", onclick: () => swap(q) }, `${n}번 바꾸기`),
+      el("button", { onclick: () => { list.splice(list.indexOf(q), 1); picked = null; baseFoot(); draw(); } }, `${n}번 빼기`)]);
   }
   function draw() {
     pagesBox.replaceChildren(); pagesBox.style.transform = ""; pagesBox.style.height = "";
@@ -565,9 +580,8 @@ function paper(qs, opts) {
       el("div", { class: "who" }, el("div", {}, "학년·반"), el("div", {}, "이름"), el("div", {}, "점수")));
     const blocks = list.map((q, i) => {
       const b = paperQ(q, i + 1, withLv);
-      b.append(el("div", { class: "qtool" },
-        el("button", { onclick: () => swap(q) }, "바꾸기"),
-        el("button", { onclick: () => { list.splice(list.indexOf(q), 1); draw(); } }, "빼기")));
+      b.onclick = () => select(q, b);
+      if (q === picked) b.classList.add("sel");
       return b;
     });
     const date = new Date().toLocaleDateString("ko-KR");
@@ -593,7 +607,7 @@ function paper(qs, opts) {
     pagesBox.style.height = s < 1 ? pagesBox.scrollHeight * s + "px" : "";
   }
   const tInput = el("input", { type: "text", value: title, onchange: e => { title = e.target.value || "중2 과학 평가"; draw(); } });
-  setFoot([el("button", { onclick: leave }, "처음으로"), el("button", { class: "primary", onclick: () => window.print() }, "인쇄 · PDF 저장")]);
+  baseFoot();
   app.replaceChildren(
     el("header", {}, el("h1", {}, "시험지")),
     el("div", { class: "ptools" },
@@ -602,7 +616,7 @@ function paper(qs, opts) {
         el("label", { class: "row" }, el("input", { type: "checkbox", checked: "", onchange: e => { withAns = e.target.checked; draw(); } }), "정답과 해설 붙이기"),
         el("label", { class: "row" }, el("input", { type: "checkbox", onchange: e => { withLv = e.target.checked; draw(); } }), "난이도 표시"),
         opts.refill ? el("button", { onclick: () => { list = examOrder(opts.refill()); draw(); } }, "다시 뽑기") : ""),
-      el("p", { class: "muted", style: "margin:8px 0 0" }, "문항 오른쪽 위 '바꾸기'로 같은 유형의 다른 문항으로, '빼기'로 시험지에서 뺄 수 있어요. 인쇄 창에서 'PDF로 저장'을 고르면 파일로 받을 수 있어요.")),
+      el("p", { class: "muted", style: "margin:8px 0 0" }, "문항을 누르면 아래에서 같은 유형의 다른 문항으로 바꾸거나 시험지에서 뺄 수 있어요. 인쇄 창에서 'PDF로 저장'을 고르면 파일로 받을 수 있어요.")),
     el("div", { class: "pclip" }, pagesBox));
   draw();
   window.onresize = fit;
