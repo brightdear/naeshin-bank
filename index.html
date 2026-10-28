@@ -292,7 +292,7 @@ function custom(f) {
   const title = [u ? u.title : "전체 단원", f.sub && u ? u.subs[f.sub] : "", lvs.length < 4 ? lvs.join("·") : ""].filter(Boolean).join(" · ");
   setFoot([el("button", { onclick: f.paper ? paperMenu : home }, f.paper ? "뒤로" : "처음으로"),
     f.paper ? el("button", { class: "primary grow", disabled: count ? null : "", onclick: () =>
-      paper(pickSet(units, n, false, filt), { title: title + " 평가", refill: () => pickSet(units, n, false, filt) }) }, `${Math.min(n, count)}문항 시험지 만들기`)
+      paper(pickSet(units, n, false, filt), { title: title + " 평가", filt, refill: () => pickSet(units, n, false, filt) }) }, `${Math.min(n, count)}문항 시험지 만들기`)
     : el("button", { class: "primary grow", disabled: count ? null : "", onclick: () =>
       startSet(units, n, false, title, filt) }, `${Math.min(n, count)}문항 풀기`)]);
   app.replaceChildren(
@@ -542,7 +542,7 @@ function paginate(host, blocks, head, foot) {
   }
 }
 function paper(qs, opts) {
-  // opts: {title, sub, refill}. qs는 고른 순서와 관계없이 시험지 순서로 정렬한다.
+  // opts: {title, filt, refill}. qs는 고른 순서와 관계없이 시험지 순서로 정렬한다.
   let list = examOrder(qs), title = opts.title || "중2 과학 평가", withAns = true, withLv = false;
   document.body.classList.add("paper-mode");
   const leave = () => { document.body.classList.remove("paper-mode"); window.onresize = null; home(); };
@@ -550,7 +550,10 @@ function paper(qs, opts) {
   const pagesBox = el("div", { class: "pages" });
   function swap(q) {
     const used = new Set(list.map(x => x.id));
+    // 형식(선택형/서술형)은 원래 문항과 같게, 범위로 뽑은 시험지면 처음 고른 난이도·소주제 조건도 지킨다.
+    const f = opts.filt || {};
     const cands = shuffle(Object.values(ITEMS).filter(x => x.unit === q.unit && !used.has(x.id) && eligible(x) &&
+      isChoice(x) === isChoice(q) && (!f.lvs || f.lvs.includes(x.difficulty)) && (!f.sub || x.sub === f.sub) &&
       (x.review_group === q.review_group || (x.sub === q.sub && x.difficulty === q.difficulty))));
     cands.sort((a, b) => (a.review_group === q.review_group ? 0 : 1) - (b.review_group === q.review_group ? 0 : 1));
     if (!cands.length) { alert("바꿀 수 있는 비슷한 문항이 없어요."); return; }
