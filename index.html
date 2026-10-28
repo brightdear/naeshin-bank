@@ -484,18 +484,20 @@ function browse(f) {
       el("div", { class: "row", style: "margin-top:8px" },
         el("label", { class: "row" }, el("input", { type: "checkbox", ...(showAll ? { checked: "" } : {}), onchange: e => { S.browseAll = e.target.checked; save(); browse(f); } }), "한 번에 모두 보기"),
         el("label", { class: "row" }, el("input", { type: "checkbox", ...(openAll ? { checked: "" } : {}), onchange: e => { S.browseOpen = e.target.checked; save(); browse(f); } }), "정답·해설 모두 펼치기")),
-      el("p", { class: "muted" }, `${all.length}문항`)),
+      el("div", { class: "row", style: "margin-top:8px" }, el("span", { class: "muted grow" }, `${all.length}문항`),
+        el("button", { disabled: all.length ? null : "", onclick: () => paper(all, { title: [u.title, f.sub ? u.subs[f.sub] : "", f.lv || ""].filter(Boolean).join(" · ") + " 전체", keepOrder: true, showLv: true, showId: true }) }, "시험지 형식으로 보기"))),
     list, moreBtn);
   more();
   window.scrollTo(0, 0);
 }
 
 // ---------- 시험지 ----------
-function paperQ(q, n, showLv) {
+function paperQ(q, n, showLv, showId) {
   const box = el("div", { class: "pq" });
   const qs = rich(el("p", { class: "qs" }), q.stem);
   qs.prepend(el("span", { class: "n" }, n + "."));
   if (showLv) qs.append(el("span", { class: "lv" }, q.difficulty || ""));
+  if (showId) qs.append(el("span", { class: "lv" }, q.id.split(":").pop()));
   box.append(qs);
   if (q.passage) box.append(rich(el("div", { class: "ps" }), q.passage));
   if (q.figure_svg) { const f = el("div", { class: "fg" }); f.innerHTML = q.figure_svg; box.append(f); }
@@ -549,7 +551,7 @@ function paginate(host, blocks, head, foot) {
 }
 function paper(qs, opts) {
   // opts: {title, filt, refill}. qs는 고른 순서와 관계없이 시험지 순서로 정렬한다.
-  let list = examOrder(qs), title = opts.title || "중2 과학 평가", withAns = true, withLv = false;
+  let list = opts.keepOrder ? [...qs] : examOrder(qs), title = opts.title || "중2 과학 평가", withAns = true, withLv = !!opts.showLv, withId = !!opts.showId;
   document.body.classList.add("paper-mode");
   const leave = () => { document.body.classList.remove("paper-mode"); window.onresize = null; home(); };
   const units = [...new Set(list.map(q => unitTitle(q.unit)))].join(" · ");
@@ -588,7 +590,7 @@ function paper(qs, opts) {
         el("span", {}, `${units} · ${list.length}문항` + (list.length > nChoice ? ` (선택형 ${nChoice}, 서술형 ${list.length - nChoice})` : ""))),
       el("div", { class: "who" }, el("div", {}, "학년·반"), el("div", {}, "이름"), el("div", {}, "점수")));
     const blocks = list.map((q, i) => {
-      const b = paperQ(q, i + 1, withLv);
+      const b = paperQ(q, i + 1, withLv, withId);
       b.onclick = () => select(q, b);
       if (q === picked) b.classList.add("sel");
       return b;
@@ -596,9 +598,12 @@ function paper(qs, opts) {
     const date = new Date().toLocaleDateString("ko-KR");
     paginate(pagesBox, blocks, { top: title, right: units, hero, spread: true }, `${date} · 문제지`);
     if (withAns) {
-      const quick = el("div", {}, el("div", { class: "sec" }, "빠른 정답"),
-        el("div", { class: "quick" }, list.map((q, i) => el("div", {}, el("b", {}, (i + 1) + "."),
-          isChoice(q) ? q.answer.map(a => NO[a - 1]).join(", ") : "서술형"))));
+      // 빠른 정답은 50문항씩 끊어 한 단을 넘지 않게 한다.
+      const cell = (q, i) => el("div", {}, el("b", {}, (i + 1) + "."), isChoice(q) ? q.answer.map(a => NO[a - 1]).join(", ") : "서술형");
+      const quicks = [];
+      for (let k = 0; k < list.length; k += 50)
+        quicks.push(el("div", {}, k ? "" : el("div", { class: "sec" }, "빠른 정답"),
+          el("div", { class: "quick" }, list.slice(k, k + 50).map((q, j) => cell(q, k + j)))));
       const exs = list.map((q, i) => {
         const e = el("div", { class: "ex" }, el("span", { class: "h" }, `${i + 1}. 정답 `),
           isChoice(q) ? q.answer.map(a => NO[a - 1]).join(", ") : choiceText(q.answer));
@@ -606,7 +611,7 @@ function paper(qs, opts) {
         if (q.explanation) e.append("\n" + q.explanation);
         return e;
       });
-      paginate(pagesBox, [quick, el("div", { class: "sec" }, "정답과 해설"), ...exs], { top: title + " · 정답과 해설", right: units }, `${date} · 정답과 해설`);
+      paginate(pagesBox, [...quicks, el("div", { class: "sec" }, "정답과 해설"), ...exs], { top: title + " · 정답과 해설", right: units }, `${date} · 정답과 해설`);
     }
     fit();
   }
@@ -623,7 +628,8 @@ function paper(qs, opts) {
       el("div", { class: "row" }, el("span", {}, "제목"), tInput),
       el("div", { class: "row", style: "margin-top:8px" },
         el("label", { class: "row" }, el("input", { type: "checkbox", checked: "", onchange: e => { withAns = e.target.checked; draw(); } }), "정답과 해설 붙이기"),
-        el("label", { class: "row" }, el("input", { type: "checkbox", onchange: e => { withLv = e.target.checked; draw(); } }), "난이도 표시"),
+        el("label", { class: "row" }, el("input", { type: "checkbox", ...(withLv ? { checked: "" } : {}), onchange: e => { withLv = e.target.checked; draw(); } }), "난이도 표시"),
+        el("label", { class: "row" }, el("input", { type: "checkbox", ...(withId ? { checked: "" } : {}), onchange: e => { withId = e.target.checked; draw(); } }), "문항 ID 표시"),
         opts.refill ? el("button", { onclick: () => { list = examOrder(opts.refill()); draw(); } }, "다시 뽑기") : ""),
       el("p", { class: "muted", style: "margin:8px 0 0" }, "문항을 누르면 아래에서 같은 유형의 다른 문항으로 바꾸거나 시험지에서 뺄 수 있어요. 인쇄 창에서 'PDF로 저장'을 고르면 파일로 받을 수 있어요.")),
     el("div", { class: "pclip" }, pagesBox));
