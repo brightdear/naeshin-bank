@@ -525,6 +525,16 @@ function paginate(host, blocks, head, foot) {
     }
   }
   made.forEach((p, i) => p.querySelector(".pn").textContent = `${i + 1} / ${made.length}`);
+  if (head.spread) {
+    // 실제 시험지처럼 단에 남는 높이를 문항마다 똑같이 나눠 각 문항 아래 풀이 여백으로 준다(마지막 단은 그대로).
+    const allCols = made.flatMap(p => [...p.querySelectorAll(".col")]).filter(c => c.children.length);
+    allCols.slice(0, -1).forEach(c => {
+      const kids = [...c.children];
+      const used = kids[kids.length - 1].getBoundingClientRect().bottom + 20 - c.getBoundingClientRect().top;
+      const free = c.clientHeight - used;
+      if (free > 0) kids.forEach(k => k.style.marginBottom = (20 + free / kids.length) + "px");
+    });
+  }
 }
 function paper(qs, opts) {
   // opts: {title, sub, refill}. qs는 고른 순서와 관계없이 시험지 순서로 정렬한다.
@@ -556,7 +566,7 @@ function paper(qs, opts) {
       return b;
     });
     const date = new Date().toLocaleDateString("ko-KR");
-    paginate(pagesBox, blocks, { top: title, right: units, hero }, `${date} · 문제지`);
+    paginate(pagesBox, blocks, { top: title, right: units, hero, spread: true }, `${date} · 문제지`);
     if (withAns) {
       const quick = el("div", {}, el("div", { class: "sec" }, "빠른 정답"),
         el("div", { class: "quick" }, list.map((q, i) => el("div", {}, el("b", {}, (i + 1) + "."),
