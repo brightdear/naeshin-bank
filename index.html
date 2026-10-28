@@ -558,7 +558,10 @@ function answerBoxes(q) {
   if (!(parts.length > 1 && /^\(\d\)/.test(parts[0]))) parts = ans.split(/,?\s*(?=\([가-하]\))/).map(s => s.trim()).filter(Boolean);
   // 순서 배열이나 기호만 쓰는 답((나), (가), (다))은 칸을 나누면 정답이 드러나므로 하나로 둔다.
   const labelsOnly = parts.every(p => p.replace(/^\((\d|[가-하])\)/, "").replace(/[,→\s]/g, "").length === 0);
-  const multi = parts.length > 1 && /^\((\d|[가-하])\)/.test(parts[0]) && !labelsOnly && !/순서/.test(q.format || "");
+  // 같은 기호가 두 번 나오면((가)…(나)… 까닭: (가)…) 칸을 나누지 않는다
+  const labs = parts.map(p => (p.match(/^\((\d|[가-하])\)/) || [""])[0]);
+  const unique = new Set(labs).size === labs.length;
+  const multi = parts.length > 1 && /^\((\d|[가-하])\)/.test(parts[0]) && !labelsOnly && unique && !/순서/.test(q.format || "");
   const lines = t => short ? 1 : Math.max(2, Math.ceil(t.replace(/^\((\d|[가-하])\)\s*/, "").length / 26) + 1);
   return el("div", { class: "wboxes" }, (multi ? parts : [ans]).map(p => {
     const lab = multi ? p.match(/^\((\d|[가-하])\)/)[0] : "";
@@ -588,6 +591,34 @@ function examOrder(qs) {
   // 선택형은 쉬운 것부터, 서술형·단답형은 뒤로
   return [...qs].sort((a, b) => (isChoice(a) ? 0 : 1) - (isChoice(b) ? 0 : 1) || (LV[a.difficulty] || 0) - (LV[b.difficulty] || 0));
 }
+// 그림이 단 너비에 맞춰 줄어들면서 글자가 9px보다 작아지면 키운다(최대 1.7배). 그림 높이는 그대로라 쪽 나누기에 영향 없음.
+function fixTinyText(block) {
+  block.querySelectorAll(".fg svg").forEach(svg => {
+    const vb = svg.viewBox && svg.viewBox.baseVal;
+    const w = svg.getBoundingClientRect().width;
+    if (!vb || !vb.width || !w) return;
+    const sc = w / vb.width;
+    const box = svg.getBoundingClientRect();
+    const rects = [...svg.querySelectorAll("rect")].map(r => r.getBoundingClientRect()).filter(r => r.width < box.width * 0.9);
+    svg.querySelectorAll("text").forEach(t => {
+      const fs = parseFloat(getComputedStyle(t).fontSize);
+      if (!fs || fs * sc >= 9 || !t.textContent.trim()) return;
+      const before = t.getBoundingClientRect();
+      const cx = before.left + before.width / 2, cy = before.top + before.height / 2;
+      const host = rects.find(r => cx > r.left && cx < r.right && cy > r.top && cy < r.bottom);
+      let size = Math.min(fs * 1.7, 9 / sc);
+      t.style.fontSize = size + "px";
+      // 상자 안 글자는 상자 폭, 그 밖의 글자는 그림 가장자리를 넘지 않게 줄인다
+      const lim = host ? { left: host.left + 2, right: host.right - 2 } : { left: box.left, right: box.right };
+      for (let k = 0; k < 6; k++) {
+        const r = t.getBoundingClientRect();
+        if (r.left >= lim.left - 0.5 && r.right <= lim.right + 0.5) break;
+        size = Math.max(fs, size * 0.9); t.style.fontSize = size + "px";
+        if (size === fs) break;
+      }
+    });
+  });
+}
 function paginate(host, blocks, head, foot) {
   // A4 쪽을 만들고 문항(block)을 왼쪽 단 → 오른쪽 단 → 다음 쪽 순으로 통째로 넣는다. 넘치면 다음 단으로 옮긴다.
   let page, cols, ci;
@@ -605,6 +636,7 @@ function paginate(host, blocks, head, foot) {
     for (;;) {
       const col = cols[ci];
       col.append(b);
+      fixTinyText(b);
       if (col.scrollHeight <= col.clientHeight + 1) break;
       if (col.children.length === 1) {
         // 문항 하나가 한 단보다 길면 단 높이에 맞게 줄인다
