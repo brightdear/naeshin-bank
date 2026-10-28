@@ -104,7 +104,9 @@ body.paper-mode .wrap{max-width:860px}
 .pq th{word-break:keep-all}
 .pq .ch div{padding-left:1.25em;text-indent:-1.25em}
 .pq table.pt{width:auto;min-width:70%;margin:8px 0 0}
-.pq table.pt th,.pq table.pt td{padding:1px 10px;white-space:nowrap}
+.pq table.pt th,.pq table.pt td{padding:1px 8px}
+.pq table.pt th{white-space:nowrap}
+.pq table.pt td{word-break:keep-all}
 .pq table.pt td.no{border:none;padding-left:0;text-align:left}
 .pq table.pt tr:first-child th:first-child{border:none;background:none}
 .pq .wbox{border:1px solid #9aa7ad;border-radius:3px;margin-top:6px;position:relative}
@@ -603,7 +605,12 @@ function paginate(host, blocks, head, foot) {
     for (;;) {
       const col = cols[ci];
       col.append(b);
-      if (col.scrollHeight <= col.clientHeight + 1 || col.children.length === 1) break;
+      if (col.scrollHeight <= col.clientHeight + 1) break;
+      if (col.children.length === 1) {
+        // 문항 하나가 한 단보다 길면 단 높이에 맞게 줄인다
+        b.style.zoom = Math.max(0.6, (col.clientHeight - 4) / col.scrollHeight);
+        break;
+      }
       b.remove();
       if (ci === 0) ci = 1; else newPage();
     }
