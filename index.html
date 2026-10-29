@@ -753,7 +753,7 @@ function paper(qs, opts) {
     paginate(pagesBox, blocks, { top: title, right: units, hero, spread: true }, " ");
     if (withAns) {
       // 빠른 정답은 50문항씩 끊어 한 단을 넘지 않게 한다.
-      const cell = (q, i) => el("div", {}, el("b", {}, (i + 1) + "."), isChoice(q) ? q.answer.map(a => NO[a - 1]).join(", ") : "서술형");
+      const cell = (q, i) => el("div", { style: "white-space:nowrap" }, el("b", {}, (i + 1) + "."), isChoice(q) ? q.answer.map(a => NO[a - 1]).join(",") : "서술");
       const quicks = [];
       for (let k = 0; k < list.length; k += 50)
         quicks.push(el("div", {}, k ? "" : el("div", { class: "sec" }, "빠른 정답"),
