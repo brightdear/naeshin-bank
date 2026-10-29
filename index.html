@@ -645,7 +645,7 @@ function paginate(host, blocks, head, foot) {
     if (!made.length && head.hero) page.append(head.hero);
     else page.append(el("div", { class: "top" }, el("b", {}, head.top), el("span", {}, head.right)));
     cols = [el("div", { class: "col" }), el("div", { class: "col" })];
-    page.append(el("div", { class: "body" }, cols), el("div", { class: "bot" }, el("span", {}, foot), el("span", { class: "pn" }, "")));
+    page.append(el("div", { class: "body" }, cols), el("div", { class: "bot" }, el("span", {}, foot), el("span", { class: "pn" }, " ")));
     host.append(page); made.push(page); ci = 0;
   };
   newPage();
@@ -721,7 +721,7 @@ function paper(qs, opts) {
       return b;
     });
     const date = new Date().toLocaleDateString("ko-KR");
-    paginate(pagesBox, blocks, { top: title, right: units, hero, spread: true }, "");
+    paginate(pagesBox, blocks, { top: title, right: units, hero, spread: true }, " ");
     if (withAns) {
       // 빠른 정답은 50문항씩 끊어 한 단을 넘지 않게 한다.
       const cell = (q, i) => el("div", {}, el("b", {}, (i + 1) + "."), isChoice(q) ? q.answer.map(a => NO[a - 1]).join(", ") : "서술형");
