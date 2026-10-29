@@ -381,6 +381,35 @@ function rich(node, text) {
 function unitTitle(k) { const u = DATA.units.find(u => u.key === k); return u ? u.title.replace(/^중2 과학\s*·?\s*/, "") : k; }
 function choiceText(c) { return Array.isArray(c) ? c.join(", ") : String(c); }
 const NO = "①②③④⑤⑥⑦";
+// 해설을 읽기 좋게 줄을 나눈다: 선택형은 정답 이유를 먼저, 오답은 번호마다 한 줄 / 보기형은 ㄱ·ㄴ·ㄷ마다 한 줄 / 계산·서술은 문장마다 한 줄
+function ansLabel(q) {
+  return isChoice(q) ? q.answer.map(a => NO[a - 1] + (q.bogi && q.bogi.length ? " " + q.choices[a - 1] : "")).join(", ")
+    : "\n" + String(choiceText(q.answer)).replace(/([다요음함])\.\s+(?=\S)/g, "$1.\n").replace(/\s+(?=\(\d\)\s)/g, "\n").trim();
+}
+function fmtEx(q) {
+  let t = (q.explanation || "").trim();
+  if (!t) return "";
+  const bySent = s => s.replace(/([다요음함])\.\s+(?=\S)/g, "$1.\n").trim();
+  if (isChoice(q) && q.bogi && q.bogi.length) {
+    t = t.replace(/\s*따라서[^.]*\.\s*$/, "");
+    const head = [], items = [];
+    t.split(/\s(?=[ㄱ-ㅁ]\.\s)/).forEach(p => { p = p.trim(); if (/^[ㄱ-ㅁ]\.\s/.test(p)) items.push(p); else if (p) head.push(p); });
+    return [head.join(" "), ...items].filter(Boolean).join("\n");
+  }
+  if (isChoice(q)) {
+    const head = [], seg = {};
+    // "①~④는 …"처럼 번호 범위를 쓴 문장은 쪼개지 않는다
+    t = t.replace(/([①②③④⑤])\s*[~～–-]\s*([①②③④⑤])/g, "〈$1–$2〉")
+      .replace(/[①②③④⑤](?:\s*[,·]?\s*[①②③④⑤])+/g, m => "〈" + m.replace(/[\s,·]/g, "") + "〉");
+    t.split(/(?<![〈–①②③④⑤])(?=[〈①②③④⑤])/).map(p => p.replace(/[〈〉]/g, "")).forEach(p => { p = p.trim(); const m = p.match(/^([①②③④⑤])/); if (m) seg[NO.indexOf(m[1]) + 1] = p; else if (p) head.push(p); });
+    if (!Object.keys(seg).length) return bySent(t);
+    const right = q.answer.map(a => seg[a]).filter(Boolean).map(s => s.replace(/^[①②③④⑤]\s*(옳다\.|옳지 않다\.|틀리다\.)?\s*/, ""));
+    const wrong = Object.keys(seg).map(Number).filter(n => !q.answer.includes(n)).sort((a, b) => a - b).map(n => seg[n]);
+    const reason = [...head, ...right].join(" ").trim();
+    return [reason, wrong.length ? "" : null, ...wrong].filter(x => x !== null).join("\n").trim();
+  }
+  return bySent(t);
+}
 
 function show() {
   const q = RUN.qs[RUN.i];
@@ -415,7 +444,7 @@ function show() {
       const fb = el("div", { class: "feedback self" }, el("b", {}, "모범 답안"), choiceText(q.answer));
       if (q.scoring) fb.append(el("b", {}, "\n채점 기준"), scoringText(q.scoring));
       card.append(fb);
-      if (q.explanation) card.append(el("div", { class: "feedback self" }, el("b", {}, "해설"), q.explanation));
+      if (q.explanation) card.append(el("div", { class: "feedback self" }, el("b", {}, "해설\n"), fmtEx(q)));
       setFoot(["right", "half", "wrong"].map(r => el("button", { class: r === "right" ? "primary" : "", onclick: () => { record(q, r, RUN.mode); RUN.res.push(r); next(); } },
         r === "right" ? "다 맞았어요" : r === "half" ? "일부 맞았어요" : "틀렸어요")));
     } }, "모범 답안 보기")]);
@@ -423,7 +452,7 @@ function show() {
 
   function finish(result, msg) {
     record(q, result, RUN.mode); RUN.res.push(result);
-    card.append(el("div", { class: "feedback " + (result === "right" ? "ok" : "bad") }, el("b", {}, msg), q.explanation || ""));
+    card.append(el("div", { class: "feedback " + (result === "right" ? "ok" : "bad") }, el("b", {}, msg + (q.explanation ? "\n" : "")), fmtEx(q)));
     setFoot([el("button", { class: "primary", onclick: next }, RUN.i + 1 < RUN.qs.length ? "다음 문제" : "결과 보기")]);
   }
   window.scrollTo(0, 0);
@@ -481,7 +510,7 @@ function browse(f) {
         el("div", { class: "feedback ok" }, el("b", {}, "정답"),
           isChoice(q) ? q.answer.map(a => NO[a - 1]).join(", ") : choiceText(q.answer)),
         q.scoring && !isChoice(q) ? el("div", { class: "feedback self" }, el("b", {}, "채점 기준"), scoringText(q.scoring)) : "",
-        q.explanation ? el("div", { class: "feedback self" }, el("b", {}, "해설"), q.explanation) : "");
+        q.explanation ? el("div", { class: "feedback self" }, el("b", {}, "해설\n"), fmtEx(q)) : "");
       const tg = el("button", { onclick: () => { ans.classList.toggle("hidden"); tg.textContent = ans.classList.contains("hidden") ? "정답·해설 보기" : "접기"; } }, openAll ? "접기" : "정답·해설 보기");
       const inCart = () => (S.cart || []).includes(q.id);
       const cb = el("button", { class: inCart() ? "primary" : "", onclick: () => {
@@ -731,12 +760,12 @@ function paper(qs, opts) {
           el("div", { class: "quick" }, list.slice(k, k + 50).map((q, j) => cell(q, k + j)))));
       const exs = list.map((q, i) => {
         const e = el("div", { class: "ex" }, el("span", { class: "h" }, `${i + 1}. 정답 `),
-          isChoice(q) ? q.answer.map(a => NO[a - 1]).join(", ") : choiceText(q.answer));
+          ansLabel(q));
         if (q.scoring && !isChoice(q)) e.append("\n[채점 기준] " + scoringText(q.scoring));
-        if (q.explanation) e.append("\n" + q.explanation);
+        if (q.explanation) e.append("\n" + fmtEx(q));
         return e;
       });
-      paginate(pagesBox, [...quicks, el("div", { class: "sec" }, "정답과 해설"), ...exs], { top: title + " · 정답과 해설", right: units }, `${date} · 정답과 해설`);
+      paginate(pagesBox, [...quicks, el("div", { class: "sec" }, "정답과 해설"), ...exs], { top: title + " · 정답과 해설", right: units }, "정답과 해설");
     }
     fit();
   }
